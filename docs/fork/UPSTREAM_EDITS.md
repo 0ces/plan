@@ -13,3 +13,4 @@ Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`,
 | `apps/api/plane/settings/common.py` | add `plane.oces` to INSTALLED_APPS |
 | `apps/api/plane/urls.py` | mount `plane.oces.urls.v1` / `.app` before upstream routes |
 | `apps/web/tsconfig.json` | `@oces/*` path alias |
+| `apps/api/plane/api/serializers/issue.py` | v1 work item `type_id` must belong to the project |

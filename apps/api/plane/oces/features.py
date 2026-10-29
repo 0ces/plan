@@ -37,7 +37,7 @@ PROJECT_KEYS = {
 
 # Keys that may be switched on. Each feature step adds its key when it ships.
 BUILT_WORKSPACE_KEYS = frozenset()
-BUILT_PROJECT_KEYS = frozenset({"modules", "cycles", "views", "pages", "intakes"})
+BUILT_PROJECT_KEYS = frozenset({"modules", "cycles", "views", "pages", "intakes", "work_item_types"})
 
 
 def validate_changes(data, keys, built):

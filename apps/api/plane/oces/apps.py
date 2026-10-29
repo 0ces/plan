@@ -11,3 +11,6 @@ class OcesConfig(AppConfig):
     name = "plane.oces"
     label = "oces"
     default_auto_field = "django.db.models.BigAutoField"
+
+    def ready(self):
+        from . import work_item_types  # noqa: F401  registers the Issue pre_save signal

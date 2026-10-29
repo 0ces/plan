@@ -85,11 +85,9 @@ class TestProjectFeatures:
         project.refresh_from_db()
         assert project.cycle_view is True
 
-    def test_work_item_types_not_available_yet(self, api_key_client, workspace, project):
-        res = api_key_client.patch(project_url(workspace.slug, project.id), {"work_item_types": True}, format="json")
+    def test_unbuilt_project_feature_refused(self, api_key_client, workspace, project):
+        res = api_key_client.patch(project_url(workspace.slug, project.id), {"parallel_cycles": True}, format="json")
         assert res.status_code == status.HTTP_400_BAD_REQUEST
-        project.refresh_from_db()
-        assert project.is_issue_type_enabled is False
 
     def test_guest_reads_but_cannot_patch(self, guest_client, workspace, project):
         url = project_url(workspace.slug, project.id, internal=True)

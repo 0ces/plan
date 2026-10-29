@@ -24,6 +24,7 @@ from .features import (
     validate_changes,
 )
 from .models import ProjectFeature, WorkspaceFeature
+from .work_item_types import enable_project_types
 
 
 class WorkspaceFeaturesMixin:
@@ -93,6 +94,8 @@ class ProjectFeaturesMixin:
             touched.add(where)
         if "project" in touched:
             project.save()
+        if changes.get("work_item_types"):
+            enable_project_types(project)  # creates default types once, types untyped items
         if "oces" in touched:
             row.save()
         return Response(self._read(project, row))

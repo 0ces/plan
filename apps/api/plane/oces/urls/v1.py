@@ -6,6 +6,7 @@
 
 from django.urls import path
 
+from plane.oces.type_views import WorkItemTypeDetailAPIEndpoint, WorkItemTypeListCreateAPIEndpoint
 from plane.oces.views import ProjectFeaturesAPIEndpoint, WorkspaceFeaturesAPIEndpoint
 
 urlpatterns = [
@@ -18,5 +19,15 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<uuid:project_id>/features/",
         ProjectFeaturesAPIEndpoint.as_view(http_method_names=["get", "patch"]),
         name="oces-v1-project-features",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-item-types/",
+        WorkItemTypeListCreateAPIEndpoint.as_view(http_method_names=["get", "post"]),
+        name="oces-v1-work-item-types",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<uuid:project_id>/work-item-types/<uuid:type_id>/",
+        WorkItemTypeDetailAPIEndpoint.as_view(http_method_names=["get", "patch", "delete"]),
+        name="oces-v1-work-item-type",
     ),
 ]

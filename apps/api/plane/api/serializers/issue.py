@@ -139,6 +139,11 @@ class IssueSerializer(BaseSerializer):
         ):
             raise serializers.ValidationError("State is not valid please pass a valid state_id")
 
+        # OCES: type must belong to this project (see docs/fork/UPSTREAM_EDITS.md)
+        from plane.oces.work_item_types import validate_issue_type
+
+        validate_issue_type(data.get("type"), self.context.get("project_id"), creating=self.instance is None)
+
         # Check parent issue is from workspace as it can be cross workspace
         if (
             data.get("parent")
