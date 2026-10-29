@@ -111,6 +111,7 @@ INSTALLED_APPS = [
     "plane.license",
     "plane.api",
     "plane.authentication",
+    "plane.oces",  # OCES: our fork's features (see docs/fork/UPSTREAM_EDITS.md)
     # Third-party things
     "rest_framework",
     "corsheaders",

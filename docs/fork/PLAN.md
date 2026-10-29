@@ -137,7 +137,7 @@ Out of scope: time tracking (billcalc covers it; a Plane→billcalc link comes l
 
 Current setup (`/root/plane`, see `NOTES.md` there): upstream `docker-compose.yml` (untouched), `docker-compose.override.yml` (Traefik labels on `proxy`) and `.env` with `APP_RELEASE=v1.4.3`. Images are pulled from Docker Hub `makeplane/*`.
 
-1. **Build**: `.github/workflows/oces-images.yml` in this repo runs on tags `oces-v1.4.3-N` (upstream version + our build number). It uses `docker/build-push-action` for linux/amd64 with the upstream Dockerfiles and default build args, so the URLs stay relative, same as the official images. It pushes:
+1. **Build**: `.github/workflows/oces-ci.yml` (done in F0) runs on tags `oces-v1.4.3-N` (upstream version + our build number). It uses `docker/build-push-action` for linux/amd64 with the upstream Dockerfiles and default build args, so the URLs stay relative, same as the official images. It pushes:
    - `registry3.oces.dev/plan-backend:<tag>` (`apps/api/Dockerfile.api`, used by api, worker, beat-worker and migrator)
    - `registry3.oces.dev/plan-web:<tag>` (`apps/web/Dockerfile.web`)
    - `registry3.oces.dev/plan-space:<tag>` (only once step 7 touches space)

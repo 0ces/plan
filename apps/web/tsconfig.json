@@ -6,6 +6,8 @@
       "@/app/*": ["./app/*"],
       "@/helpers/*": ["./helpers/*"],
       "@/styles/*": ["./styles/*"],
+      // OCES: fork code lives in apps/web/oces (see docs/fork/UPSTREAM_EDITS.md)
+      "@oces/*": ["./oces/*"],
       "package.json": ["./package.json"]
     },
     "strictNullChecks": true,

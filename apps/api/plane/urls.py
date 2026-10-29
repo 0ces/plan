@@ -16,6 +16,9 @@ from drf_spectacular.views import (
 handler404 = "plane.app.views.error_404.custom_404_view"
 
 urlpatterns = [
+    # OCES: fork routes first, so they win over upstream paths (see docs/fork/UPSTREAM_EDITS.md)
+    path("api/v1/", include("plane.oces.urls.v1")),
+    path("api/", include("plane.oces.urls.app")),
     path("api/", include("plane.app.urls")),
     path("api/public/", include("plane.space.urls")),
     path("api/instances/", include("plane.license.urls")),
