@@ -42,6 +42,7 @@ from plane.db.models import (
     IssueDescriptionVersion,
     ProjectMember,
     EstimatePoint,
+    IssueType,  # OCES: work item type_id field
 )
 from plane.utils.content_validator import (
     validate_html_content,
@@ -99,6 +100,10 @@ class IssueCreateSerializer(BaseSerializer):
     )
     project_id = serializers.UUIDField(source="project.id", read_only=True)
     workspace_id = serializers.UUIDField(source="workspace.id", read_only=True)
+    # OCES: the web sends type_id; validated against the project below
+    type_id = serializers.PrimaryKeyRelatedField(
+        source="type", queryset=IssueType.objects.all(), required=False, allow_null=True
+    )
 
     class Meta:
         model = Issue
@@ -122,6 +127,11 @@ class IssueCreateSerializer(BaseSerializer):
         return data
 
     def validate(self, attrs):
+        # OCES: type must belong to this project
+        from plane.oces.work_item_types import validate_issue_type
+
+        validate_issue_type(attrs.get("type"), self.context.get("project_id"), creating=self.instance is None)
+
         allow_triage = self.context.get("allow_triage_state", False)
         state_manager = State.triage_objects if allow_triage else State.objects
 
@@ -787,6 +797,7 @@ class IssueSerializer(DynamicBaseSerializer):
             "id",
             "name",
             "state_id",
+            "type_id",  # OCES: work item type
             "sort_order",
             "completed_at",
             "estimate_point",

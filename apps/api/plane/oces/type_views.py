@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from plane.api.views.base import BaseAPIView as PublicAPIView
+from plane.app.views.base import BaseAPIView as AppAPIView
 from plane.app.permissions import ProjectAdminPermission, ProjectLitePermission
 from plane.db.models import Issue, IssueType, Project
 from plane.db.models.issue_type import ProjectIssueType
@@ -52,7 +53,7 @@ class WorkItemTypeMixin:
         return {k: v for k, v in self.request.data.items() if k in EDITABLE}, None
 
 
-class WorkItemTypeListCreateAPIEndpoint(WorkItemTypeMixin, PublicAPIView):
+class WorkItemTypeListCreateMixin(WorkItemTypeMixin):
     def get(self, request, slug, project_id):
         self._project(slug, project_id)
         # Plain array, as the official API (the SDK does not expect pagination here).
@@ -84,7 +85,7 @@ class WorkItemTypeListCreateAPIEndpoint(WorkItemTypeMixin, PublicAPIView):
         return Response(self._out(issue_type, project_id), status=status.HTTP_201_CREATED)
 
 
-class WorkItemTypeDetailAPIEndpoint(WorkItemTypeMixin, PublicAPIView):
+class WorkItemTypeDetailMixin(WorkItemTypeMixin):
     def _get(self, slug, project_id, type_id):
         self._project(slug, project_id)
         return get_object_or_404(project_types(project_id), pk=type_id)
@@ -141,3 +142,21 @@ class WorkItemTypeDetailAPIEndpoint(WorkItemTypeMixin, PublicAPIView):
             if not ProjectIssueType.objects.filter(issue_type=issue_type).exists():
                 issue_type.delete(soft=False)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# Public API (X-Api-Key)
+class WorkItemTypeListCreateAPIEndpoint(WorkItemTypeListCreateMixin, PublicAPIView):
+    pass
+
+
+class WorkItemTypeDetailAPIEndpoint(WorkItemTypeDetailMixin, PublicAPIView):
+    pass
+
+
+# Internal API (session) for the web app
+class WorkItemTypeListCreateEndpoint(WorkItemTypeListCreateMixin, AppAPIView):
+    pass
+
+
+class WorkItemTypeDetailEndpoint(WorkItemTypeDetailMixin, AppAPIView):
+    pass

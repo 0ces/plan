@@ -6,7 +6,11 @@
 
 from django.urls import path
 
+from plane.oces.epic_views import EpicListEndpoint, EpicProgressEndpoint
+from plane.oces.type_views import WorkItemTypeDetailEndpoint, WorkItemTypeListCreateEndpoint
 from plane.oces.views import ProjectFeaturesEndpoint, WorkspaceFeaturesEndpoint
+
+P = "workspaces/<str:slug>/projects/<uuid:project_id>/oces"
 
 urlpatterns = [
     path(
@@ -15,8 +19,24 @@ urlpatterns = [
         name="oces-workspace-features",
     ),
     path(
-        "workspaces/<str:slug>/projects/<uuid:project_id>/oces/features/",
+        f"{P}/features/",
         ProjectFeaturesEndpoint.as_view(http_method_names=["get", "patch"]),
         name="oces-project-features",
+    ),
+    path(
+        f"{P}/work-item-types/",
+        WorkItemTypeListCreateEndpoint.as_view(http_method_names=["get", "post"]),
+        name="oces-work-item-types",
+    ),
+    path(
+        f"{P}/work-item-types/<uuid:type_id>/",
+        WorkItemTypeDetailEndpoint.as_view(http_method_names=["get", "patch", "delete"]),
+        name="oces-work-item-type",
+    ),
+    path(f"{P}/epics/", EpicListEndpoint.as_view(http_method_names=["get"]), name="oces-epics"),
+    path(
+        f"{P}/epics/<uuid:epic_id>/progress/",
+        EpicProgressEndpoint.as_view(http_method_names=["get"]),
+        name="oces-epic-progress",
     ),
 ]

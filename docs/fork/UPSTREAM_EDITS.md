@@ -8,9 +8,12 @@ file lost its marker. Keep edits to one-liners: includes, aliases, hook calls.
 Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`,
 `packages/types/src/oces/`, `docs/fork/`, `scripts/oces/`, `.github/workflows/oces-*`.
 
-| File | Why |
-|---|---|
-| `apps/api/plane/settings/common.py` | add `plane.oces` to INSTALLED_APPS |
-| `apps/api/plane/urls.py` | mount `plane.oces.urls.v1` / `.app` before upstream routes |
-| `apps/web/tsconfig.json` | `@oces/*` path alias |
-| `apps/api/plane/api/serializers/issue.py` | v1 work item `type_id` must belong to the project |
+| File                                      | Why                                                                                     |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| `apps/api/plane/settings/common.py`       | add `plane.oces` to INSTALLED_APPS                                                      |
+| `apps/api/plane/urls.py`                  | mount `plane.oces.urls.v1` / `.app` before upstream routes                              |
+| `apps/web/tsconfig.json`                  | `@oces/*` path alias                                                                    |
+| `apps/api/plane/api/serializers/issue.py` | v1 work item `type_id` must belong to the project                                       |
+| `apps/api/plane/app/serializers/issue.py` | internal work item `type_id` field + project check; `type_id` in IssueSerializer fields |
+| `apps/api/plane/app/views/issue/base.py`  | `type_id` in work item list/create field lists                                          |
+| `apps/api/plane/utils/grouper.py`         | `type_id` in grouped list fields                                                        |

@@ -176,6 +176,7 @@ class IssueListEndpoint(BaseAPIView):
                 "id",
                 "name",
                 "state_id",
+                "type_id",  # OCES: work item type
                 "sort_order",
                 "completed_at",
                 "estimate_point",
@@ -441,6 +442,7 @@ class IssueViewSet(BaseViewSet):
                     "id",
                     "name",
                     "state_id",
+                    "type_id",  # OCES: work item type
                     "sort_order",
                     "completed_at",
                     "estimate_point",
@@ -872,6 +874,7 @@ class IssuePaginatedViewSet(BaseViewSet):
             "id",
             "name",
             "state_id",
+            "type_id",  # OCES: work item type
             "state__group",
             "sort_order",
             "completed_at",
