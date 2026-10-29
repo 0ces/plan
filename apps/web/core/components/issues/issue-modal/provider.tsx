@@ -12,6 +12,8 @@ import type { ISearchIssueResponse, TIssue } from "@plane/types";
 import { IssueModalContext } from "@/components/issues/issue-modal/context";
 // hooks
 import { useUser } from "@/hooks/store/user/user-user";
+// OCES: default work item type (docs/fork/UPSTREAM_EDITS.md)
+import { workItemTypesStore } from "@oces/store/work-item-types.store";
 
 export type TIssueModalProviderProps = {
   templateId?: string;
@@ -44,7 +46,7 @@ export const IssueModalProvider = observer(function IssueModalProvider(props: TI
         setIssuePropertyValues: () => {},
         issuePropertyValueErrors: {},
         setIssuePropertyValueErrors: () => {},
-        getIssueTypeIdOnProjectChange: () => null,
+        getIssueTypeIdOnProjectChange: (projectId: string) => workItemTypesStore.getDefaultType(projectId)?.id ?? null, // OCES:
         getActiveAdditionalPropertiesLength: () => 0,
         handlePropertyValuesValidation: () => true,
         handleCreateUpdatePropertyValues: () => Promise.resolve(),

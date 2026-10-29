@@ -11,6 +11,8 @@ import type { TIssueIdentifierProps } from "@plane/types";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { IdentifierText } from "@/components/issues/issue-detail/identifier-text";
+// OCES: work item type icon (docs/fork/UPSTREAM_EDITS.md)
+import { WorkItemTypeIcon } from "@oces/components/work-item-type-icon";
 
 export const IssueIdentifier = observer(function IssueIdentifier(props: TIssueIdentifierProps) {
   const { projectId, variant, size, displayProperties, enableClickToCopyIdentifier = false } = props;
@@ -31,6 +33,8 @@ export const IssueIdentifier = observer(function IssueIdentifier(props: TIssueId
 
   return (
     <div className="flex shrink-0 items-center space-x-2">
+      {/* OCES: type icon */}
+      <WorkItemTypeIcon typeId={isUsingStoreData ? issue?.type_id : props.issueTypeId} projectId={projectId} />
       <IdentifierText
         identifier={`${projectIdentifier}-${issueSequenceId}`}
         enableClickToCopyIdentifier={enableClickToCopyIdentifier}

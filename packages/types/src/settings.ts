@@ -30,7 +30,8 @@ export type TProjectSettingsTabs =
   | "states"
   | "labels"
   | "estimates"
-  | "automations";
+  | "automations"
+  | "work_item_types"; // OCES: fork settings page
 export type TProjectSettingsItem = {
   key: TProjectSettingsTabs;
   i18n_label: string;

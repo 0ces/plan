@@ -9,6 +9,8 @@ import { observer } from "mobx-react";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
 import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
+// OCES: type picker (docs/fork/UPSTREAM_EDITS.md)
+import { WorkItemTypeSwitch } from "@oces/components/work-item-type-switch";
 
 export type TIssueTypeSwitcherProps = {
   issueId: string;
@@ -16,7 +18,7 @@ export type TIssueTypeSwitcherProps = {
 };
 
 export const IssueTypeSwitcher = observer(function IssueTypeSwitcher(props: TIssueTypeSwitcherProps) {
-  const { issueId } = props;
+  const { issueId, disabled } = props;
   // store hooks
   const {
     issue: { getIssueById },
@@ -26,5 +28,11 @@ export const IssueTypeSwitcher = observer(function IssueTypeSwitcher(props: TIss
 
   if (!issue || !issue.project_id) return <></>;
 
-  return <IssueIdentifier issueId={issueId} projectId={issue.project_id} size="md" enableClickToCopyIdentifier />;
+  return (
+    <div className="flex items-center gap-2">
+      <IssueIdentifier issueId={issueId} projectId={issue.project_id} size="md" enableClickToCopyIdentifier />
+      {/* OCES: type picker */}
+      <WorkItemTypeSwitch issueId={issueId} disabled={disabled} />
+    </div>
+  );
 });

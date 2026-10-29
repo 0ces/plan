@@ -19,6 +19,8 @@ import { useTranslation } from "@plane/i18n";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TIssue, TWorkspaceDraftIssue } from "@plane/types";
+// OCES: type picker (docs/fork/UPSTREAM_EDITS.md)
+import { WorkItemTypeFormField } from "@oces/components/work-item-type-form-field";
 // hooks
 import { ToggleSwitch } from "@plane/ui";
 import {
@@ -368,6 +370,8 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
                     disabled={!!data?.id || !!data?.sourceIssueId || isProjectSelectionDisabled}
                     handleFormChange={handleFormChange}
                   />
+                  {/* OCES: type picker */}
+                  <WorkItemTypeFormField control={control} projectId={projectId} handleFormChange={handleFormChange} />
                 </div>
               </div>
               {watch("parent_id") && selectedParentIssue && (

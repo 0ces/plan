@@ -20,6 +20,8 @@ import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
+// OCES: fork navigation items (docs/fork/UPSTREAM_EDITS.md)
+import { useOcesProjectNavigation } from "@oces/components/project-navigation";
 
 export type TNavigationItem = {
   name: string;
@@ -39,7 +41,8 @@ type TProjectItemsProps = {
 };
 
 export const ProjectNavigation = observer(function ProjectNavigation(props: TProjectItemsProps) {
-  const { workspaceSlug, projectId, additionalNavigationItems } = props;
+  const { workspaceSlug, projectId } = props;
+  const additionalNavigationItems = useOcesProjectNavigation(workspaceSlug, projectId, props.additionalNavigationItems); // OCES:
   const { workItem: workItemIdentifierFromRoute } = useParams();
   // store hooks
   const { t } = useTranslation();
