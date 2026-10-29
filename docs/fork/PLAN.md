@@ -56,6 +56,15 @@ Override `projects/{p}/work-items/`, `work-items/`, `archived-work-items/` and `
 - **Behaviour**: enabling types in a project creates the default types Task, Bug, Feature and Epic (Epic with `is_epic=true`, `level=1`). Existing items get `type = default` (Task). Epics are hidden from normal lists, matching upstream's archive filter. Epic progress = children counted by state group (and estimate points when estimates are on).
 - **UI**: project settings → Work item types (name, icon and colour via `logo_props`, description, active, default). Type picker in the create modal and the sidebar. Type icon next to the identifier (the `issueTypeId` props already exist). Epics page per project with a progress bar and child list. Fill in the existing `CreateUpdateEpicModal`.
 
+### L. Live updates over websockets — 8 days (added 2026-10-29 by Edwar)
+Goal: the whole web app updates by itself (lists, boards, work item detail, comments, cycles and modules, and our features). Nobody needs to refresh.
+- **CE today**: `apps/live` is already a websocket server (Hocuspocus + `express-ws`, session-cookie auth against the API, Redis via `ioredis`). It only serves collaborative page editing. The proxy already routes `/live/` to it.
+- **Backend → Redis**: `plane.oces.live` listens to `post_save` / `post_delete` (sent with `transaction.on_commit`) on Issue and its relations (assignees, labels, comments, reactions, links, attachments, cycle and module items, relations), plus State, Cycle, Module, Label and our models. It publishes small events to Redis channel `oces:live:<workspace_id>`, for example `{project_id, entity: "issue", id, action, actor_id}`. Events carry **ids only, no data**, so nothing private leaks through the socket.
+- **Live server**: a new `/live/events` websocket route in `apps/live/src/oces/`. On connect it authenticates with the session cookie, as the editor does. It asks a new internal endpoint (`/api/workspaces/<slug>/oces/live-access/`) which projects the user may see, and only forwards events for those. Access is re-checked on reconnect and when membership changes.
+- **Web**: one `useLiveEvents()` provider at the workspace layout. It calls the **existing MobX store fetch methods** for the changed entity (refresh that work item, the list or board page, comments, the cycle). That way the API keeps doing permission filtering (guests and client portal included), and there is no patch logic to keep in sync with upstream. Events from your own actions are skipped (`actor_id`), and bursts are debounced. On reconnect, a full refresh of the current view.
+- **Images**: adds `plan-live` (`apps/live/Dockerfile.live`) to CI and to the svr3 override.
+- **Tests**: event emission per model (pytest), access filtering (guest vs member), and a two-browser check that a change in one appears in the other.
+
 ### 2. Custom properties — 12 days
 - **Models**:
   - `IssueProperty`: workspace; project (nullable); issue_type (nullable); name, display_name, description; `property_type`; `relation_type`; `settings` JSON; `is_required`, `is_multi`, `is_active`; `default_value`; sort_order; external_*.
@@ -121,15 +130,16 @@ Override `projects/{p}/work-items/`, `work-items/`, `archived-work-items/` and `
 | F0 | Foundation, feature flags, CI and images | 4 |
 | F1 | PQL subset | 5 |
 | 1 | Work item types and epics | 8 |
+| L | Live updates (websockets) | 8 |
 | 2 | Custom properties | 12 |
 | 3 | Initiatives | 7 |
 | 4 | Releases (+ RELATION properties, 3) | 7 + 3 |
 | 5 | Workflows & approvals | 12 |
 | 6 | Dashboards | 10 |
 | 7 | Client portal + Customers + security audit | 14 |
-| | **Total** | **≈ 82 dev-days** |
+| | **Total** | **≈ 90 dev-days** |
 
-Order: F0 → 1 → F1 → 2 → 3 → 4 → 5 → 6 → 7. F1 comes after types because `childOf` and `type =` are its main use. Each step ends deployed to plane.oces.dev and checked with the MCP before the next starts.
+Order: F0 → 1 → F1 → L → 2 → 3 → 4 → 5 → 6 → 7. F1 comes after types because `childOf` and `type =` are its main use. L comes early so every later feature only has to add its events. Each step ends deployed to plane.oces.dev and checked with the MCP before the next starts.
 
 Out of scope: time tracking (billcalc covers it; a Plane→billcalc link comes later), milestones, templates, collections, teamspaces, workspace-owned type catalogues, FORMULA / CASCADING / FILE properties, and SSO.
 
@@ -142,7 +152,9 @@ Current setup (`/root/plane`, see `NOTES.md` there): upstream `docker-compose.ym
    - `registry3.oces.dev/plan-web:<tag>` (`apps/web/Dockerfile.web`)
    - `registry3.oces.dev/plan-space:<tag>` (only once step 7 touches space)
 
-   admin, live and proxy stay on upstream `makeplane/*` images until we change them.
+   - `registry3.oces.dev/plan-live:<tag>` (from step L)
+
+   admin and proxy stay on upstream `makeplane/*` images until we change them.
 
    Registry login uses repo secrets `DOCKER_USERNAME` / `DOCKER_PASSWORD` and variable `DOCKER_REGISTRY`, the same pattern as culpacafe's `deploy.yml`. Edwar sets the secrets.
 2. **Switch on svr3**: add `image:` lines to `docker-compose.override.yml` only:
