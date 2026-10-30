@@ -72,6 +72,8 @@ Goal: the whole web app updates by itself (lists, boards, work item detail, comm
 
 ### 2. Custom properties — 12 days
 
+**Built 2026-10-30.** Backend: models and migration `oces.0002`, all three API scopes, options, type links, values (single and multi), activity rows, defaults applied on create, `cf["<id>"]` in PQL. Web: property editor per type (Settings → Work item types → Properties), values in the sidebar and peek panel, fields in the create/edit modal with required checks, history rows, live refresh of values. Kinds: text, paragraph, number, checkbox, date, dropdown, URL, email, member, rich text. Not yet: list/spreadsheet columns, filtering by property in the web UI (PQL works), a work item picker for ISSUE relations (set through the API), workspace-owned type links (`{ws}/work-item-types/{t}/properties/`), drag ordering (Move up/down instead). Required properties are enforced in the web form only, so the MCP can still create work items without them.
+
 - **Models**:
   - `IssueProperty`: workspace; project (nullable); issue*type (nullable); name, display_name, description; `property_type`; `relation_type`; `settings` JSON; `is_required`, `is_multi`, `is_active`; `default_value`; sort_order; external*\*.
   - `IssuePropertyOption`: property, name, sort_order, is_default, logo_props.

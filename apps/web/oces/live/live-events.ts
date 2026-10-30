@@ -15,6 +15,7 @@ import { rootStore } from "@/lib/store-context";
 import { EIssueGroupedAction } from "@/store/issue/helpers/base-issues.store";
 import { IssueService } from "@/services/issue";
 import { epicsStore } from "@oces/store/epics.store";
+import { propertiesStore } from "@oces/store/properties.store";
 
 export type LiveEvent = {
   project_id?: string | null;
@@ -226,6 +227,12 @@ const applyIssueEvent = async (
 
   if (e.action === "activity") {
     if (open) void issue.issueDetail.fetchActivities(slug, projectOfIssue, issueId);
+    return false;
+  }
+  // custom property values: the API writes their history itself, so no "activity" event follows
+  if (open && e.route?.includes("propert")) {
+    void propertiesStore.fetchValues(slug, projectOfIssue, issueId).catch(() => undefined);
+    void issue.issueDetail.fetchActivities(slug, projectOfIssue, issueId);
     return false;
   }
   // only bother with items on screen or in the project being viewed

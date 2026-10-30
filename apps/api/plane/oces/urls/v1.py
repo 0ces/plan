@@ -6,6 +6,8 @@
 
 from django.urls import path
 
+from plane.oces.urls.properties import routes
+
 from plane.oces.pql_views import (
     ArchivedWorkItemListAPIEndpoint,
     ProjectWorkItemListAPIEndpoint,
@@ -57,4 +59,4 @@ urlpatterns = [
         WorkspaceWorkItemListAPIEndpoint.as_view(http_method_names=["get"]),
         name="oces-v1-workspace-work-items",
     ),
-]
+] + routes(True, "workspaces/<str:slug>", "workspaces/<str:slug>/projects/<uuid:project_id>")

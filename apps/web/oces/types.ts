@@ -44,3 +44,55 @@ export type TEpic = {
   target_date: string | null;
   progress: TEpicProgress;
 };
+
+// ---------------------------------------------------------------- custom properties
+
+export type TPropertyType = "TEXT" | "DECIMAL" | "BOOLEAN" | "DATETIME" | "OPTION" | "URL" | "EMAIL" | "RELATION";
+export type TRelationType = "USER" | "ISSUE" | "RICH_TEXT";
+
+export type TPropertyOption = {
+  id: string;
+  name: string;
+  description: string;
+  sort_order: number;
+  logo_props: { in_use?: string; color?: string } & Record<string, unknown>;
+  is_active: boolean;
+  is_default: boolean;
+};
+
+export type TProperty = {
+  id: string;
+  display_name: string;
+  description: string;
+  property_type: TPropertyType;
+  relation_type: TRelationType | null;
+  settings: { display_format: string } | null;
+  is_required: boolean;
+  is_multi: boolean;
+  is_active: boolean;
+  default_value: string[];
+  sort_order: number;
+  project: string | null;
+  issue_type_ids: string[];
+  options: TPropertyOption[];
+};
+
+export type TPropertyInput = Partial<
+  Pick<
+    TProperty,
+    | "display_name"
+    | "description"
+    | "property_type"
+    | "relation_type"
+    | "settings"
+    | "is_required"
+    | "is_multi"
+    | "is_active"
+    | "default_value"
+    | "sort_order"
+  >
+> & { options?: { name: string; is_default?: boolean; color?: string }[] };
+
+/** One work item's values: property id -> value (a list for multi-value properties). */
+export type TPropertyValue = string | number | boolean | string[] | null;
+export type TPropertyValues = Record<string, TPropertyValue>;

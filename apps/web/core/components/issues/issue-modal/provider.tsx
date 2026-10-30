@@ -14,6 +14,8 @@ import { IssueModalContext } from "@/components/issues/issue-modal/context";
 import { useUser } from "@/hooks/store/user/user-user";
 // OCES: default work item type (docs/fork/UPSTREAM_EDITS.md)
 import { workItemTypesStore } from "@oces/store/work-item-types.store";
+// OCES: custom properties
+import { useIssueModalProperties } from "@oces/components/issue-modal-properties";
 
 export type TIssueModalProviderProps = {
   templateId?: string;
@@ -30,6 +32,7 @@ export const IssueModalProvider = observer(function IssueModalProvider(props: TI
   const { projectsWithCreatePermissions } = useUser();
   // derived values
   const projectIdsWithCreatePermissions = Object.keys(projectsWithCreatePermissions ?? {});
+  const propertyHandlers = useIssueModalProperties(); // OCES: custom properties
 
   return (
     <IssueModalContext.Provider
@@ -42,14 +45,8 @@ export const IssueModalProvider = observer(function IssueModalProvider(props: TI
         setIsApplyingTemplate: () => {},
         selectedParentIssue,
         setSelectedParentIssue,
-        issuePropertyValues: {},
-        setIssuePropertyValues: () => {},
-        issuePropertyValueErrors: {},
-        setIssuePropertyValueErrors: () => {},
+        ...propertyHandlers, // OCES: custom properties
         getIssueTypeIdOnProjectChange: (projectId: string) => workItemTypesStore.getDefaultType(projectId)?.id ?? null, // OCES:
-        getActiveAdditionalPropertiesLength: () => 0,
-        handlePropertyValuesValidation: () => true,
-        handleCreateUpdatePropertyValues: () => Promise.resolve(),
         handleProjectEntitiesFetch: () => Promise.resolve(),
         handleTemplateChange: () => Promise.resolve(),
         handleConvert: () => Promise.resolve(),

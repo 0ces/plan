@@ -17,3 +17,11 @@ def celery_in_process(settings):
     celery_app.conf.task_always_eager = True
     yield
     celery_app.conf.task_always_eager = False
+
+
+@pytest.fixture(autouse=True)
+def no_api_rate_limit(monkeypatch):
+    """The API key throttle counts in Redis across tests; contract tests make many calls."""
+    from plane.api.rate_limit import ApiKeyRateThrottle
+
+    monkeypatch.setattr(ApiKeyRateThrottle, "allow_request", lambda self, request, view: True)

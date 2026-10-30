@@ -40,6 +40,8 @@ import { IssueParentSelectRoot } from "@/components/issues/parent-select-root";
 import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
 import { IssueCycleSelect } from "./cycle-select";
 import { IssueLabel } from "./label";
+// OCES: custom properties (docs/fork/UPSTREAM_EDITS.md)
+import { WorkItemPropertyValues } from "@oces/components/work-item-property-values";
 import { IssueModuleSelect } from "./module-select";
 import type { TIssueOperations } from "./root";
 
@@ -248,6 +250,13 @@ export const IssueDetailsSidebar = observer(function IssueDetailsSidebar(props: 
                 disabled={!isEditable}
               />
             </SidebarPropertyListItem>
+            {/* OCES: custom properties */}
+            <WorkItemPropertyValues
+              workspaceSlug={workspaceSlug}
+              projectId={projectId}
+              issueId={issueId}
+              disabled={!isEditable}
+            />
           </div>
         </div>
       </div>

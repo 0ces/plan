@@ -15,3 +15,4 @@ class OcesConfig(AppConfig):
     def ready(self):
         from . import work_item_types  # noqa: F401  registers the Issue pre_save signal
         from . import live  # noqa: F401  registers the activity task_postrun hook
+        from . import properties  # noqa: F401  registers default property values on create

@@ -6,6 +6,8 @@
 
 from django.urls import path
 
+from plane.oces.urls.properties import routes
+
 from plane.oces.live import LiveAccessEndpoint
 from plane.oces.epic_views import EpicListEndpoint, EpicProgressEndpoint
 from plane.oces.type_views import WorkItemTypeDetailEndpoint, WorkItemTypeListCreateEndpoint
@@ -45,4 +47,4 @@ urlpatterns = [
         EpicProgressEndpoint.as_view(http_method_names=["get"]),
         name="oces-epic-progress",
     ),
-]
+] + routes(False, "workspaces/<str:slug>/oces", P)

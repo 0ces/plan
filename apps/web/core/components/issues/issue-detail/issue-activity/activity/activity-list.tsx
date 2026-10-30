@@ -31,6 +31,8 @@ import {
   IssueArchivedAtActivity,
   IssueInboxActivity,
 } from "./actions";
+// OCES: custom property history (docs/fork/UPSTREAM_EDITS.md)
+import { PropertyActivity } from "@oces/components/property-activity";
 
 type TIssueActivityItem = {
   activityId: string;
@@ -91,6 +93,8 @@ export const IssueActivityItem = observer(function IssueActivityItem(props: TIss
     case "intake":
     case "inbox":
       return <IssueInboxActivity {...componentDefaultProps} />;
+    case "oces_property": // OCES: custom properties
+      return <PropertyActivity {...componentDefaultProps} />;
     default:
       return null;
   }

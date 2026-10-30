@@ -21,6 +21,8 @@ import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TIssue, TWorkspaceDraftIssue } from "@plane/types";
 // OCES: type picker (docs/fork/UPSTREAM_EDITS.md)
 import { WorkItemTypeFormField } from "@oces/components/work-item-type-form-field";
+// OCES: custom properties
+import { IssueModalPropertyFields } from "@oces/components/issue-modal-properties";
 // hooks
 import { ToggleSwitch } from "@plane/ui";
 import {
@@ -422,6 +424,13 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
                   onClose={onClose}
                 />
               </div>
+              {/* OCES: custom properties */}
+              <IssueModalPropertyFields
+                workspaceSlug={workspaceSlug?.toString()}
+                projectId={projectId}
+                typeId={watch("type_id")}
+                issueId={data?.id}
+              />
             </div>
             <div
               className={cn(

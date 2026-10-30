@@ -13,6 +13,7 @@ import type { TLogoProps } from "@plane/types";
 import { CustomMenu, ToggleSwitch } from "@plane/ui";
 import { useWorkItemTypes } from "../store/use-work-item-types";
 import type { TWorkItemType } from "../types";
+import { TypePropertiesEditor } from "./type-properties-editor";
 import { WorkItemTypeModal } from "./work-item-type-modal";
 
 type Props = { workspaceSlug: string; projectId: string };
@@ -25,6 +26,7 @@ export const WorkItemTypesSettings = observer(function WorkItemTypesSettings({ w
   const store = useWorkItemTypes(workspaceSlug, projectId);
   const [modal, setModal] = useState<{ open: boolean; type?: TWorkItemType }>({ open: false });
   const [toggling, setToggling] = useState(false);
+  const [openTypeId, setOpenTypeId] = useState<string | null>(null);
   const enabled = store.isEnabled(projectId);
   const types = store.getProjectTypes(projectId);
 
@@ -64,53 +66,65 @@ export const WorkItemTypesSettings = observer(function WorkItemTypesSettings({ w
           </div>
           <ul className="divide-y divide-subtle rounded-lg border-[0.5px] border-subtle">
             {types.map((type) => (
-              <li key={type.id} className="flex items-center gap-3 px-4 py-3">
-                <Logo logo={type.logo_props as TLogoProps} size={18} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-13 font-medium ${type.is_active ? "text-primary" : "text-tertiary"}`}>
-                      {type.name}
-                    </span>
-                    {type.is_default && <Badge>Default</Badge>}
-                    {type.is_epic && <Badge>Epic</Badge>}
-                    {!type.is_active && <Badge>Inactive</Badge>}
+              <li key={type.id}>
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <Logo logo={type.logo_props as TLogoProps} size={18} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-13 font-medium ${type.is_active ? "text-primary" : "text-tertiary"}`}>
+                        {type.name}
+                      </span>
+                      {type.is_default && <Badge>Default</Badge>}
+                      {type.is_epic && <Badge>Epic</Badge>}
+                      {!type.is_active && <Badge>Inactive</Badge>}
+                    </div>
+                    {type.description && <p className="truncate text-12 text-tertiary">{type.description}</p>}
                   </div>
-                  {type.description && <p className="truncate text-12 text-tertiary">{type.description}</p>}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setOpenTypeId(openTypeId === type.id ? null : type.id)}
+                  >
+                    {openTypeId === type.id ? "Hide properties" : "Properties"}
+                  </Button>
+                  <CustomMenu ellipsis placement="bottom-end">
+                    <CustomMenu.MenuItem onClick={() => setModal({ open: true, type })}>Edit</CustomMenu.MenuItem>
+                    {!type.is_default && !type.is_epic && type.is_active && (
+                      <CustomMenu.MenuItem
+                        onClick={() =>
+                          run(
+                            () => store.update(workspaceSlug, projectId, type.id, { is_default: true }),
+                            "Could not change the default."
+                          )
+                        }
+                      >
+                        Make default
+                      </CustomMenu.MenuItem>
+                    )}
+                    {!type.is_default && (
+                      <CustomMenu.MenuItem
+                        onClick={() =>
+                          run(
+                            () => store.update(workspaceSlug, projectId, type.id, { is_active: !type.is_active }),
+                            "Could not change the type."
+                          )
+                        }
+                      >
+                        {type.is_active ? "Deactivate" : "Activate"}
+                      </CustomMenu.MenuItem>
+                    )}
+                    {!type.is_default && (
+                      <CustomMenu.MenuItem
+                        onClick={() => run(() => store.remove(workspaceSlug, projectId, type.id), "Could not delete.")}
+                      >
+                        <span className="text-danger-primary">Delete</span>
+                      </CustomMenu.MenuItem>
+                    )}
+                  </CustomMenu>
                 </div>
-                <CustomMenu ellipsis placement="bottom-end">
-                  <CustomMenu.MenuItem onClick={() => setModal({ open: true, type })}>Edit</CustomMenu.MenuItem>
-                  {!type.is_default && !type.is_epic && type.is_active && (
-                    <CustomMenu.MenuItem
-                      onClick={() =>
-                        run(
-                          () => store.update(workspaceSlug, projectId, type.id, { is_default: true }),
-                          "Could not change the default."
-                        )
-                      }
-                    >
-                      Make default
-                    </CustomMenu.MenuItem>
-                  )}
-                  {!type.is_default && (
-                    <CustomMenu.MenuItem
-                      onClick={() =>
-                        run(
-                          () => store.update(workspaceSlug, projectId, type.id, { is_active: !type.is_active }),
-                          "Could not change the type."
-                        )
-                      }
-                    >
-                      {type.is_active ? "Deactivate" : "Activate"}
-                    </CustomMenu.MenuItem>
-                  )}
-                  {!type.is_default && (
-                    <CustomMenu.MenuItem
-                      onClick={() => run(() => store.remove(workspaceSlug, projectId, type.id), "Could not delete.")}
-                    >
-                      <span className="text-danger-primary">Delete</span>
-                    </CustomMenu.MenuItem>
-                  )}
-                </CustomMenu>
+                {openTypeId === type.id && (
+                  <TypePropertiesEditor workspaceSlug={workspaceSlug} projectId={projectId} typeId={type.id} />
+                )}
               </li>
             ))}
           </ul>

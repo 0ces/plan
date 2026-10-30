@@ -32,6 +32,9 @@ from plane.db.models import (
     WorkspaceMember,
 )
 
+from .models import WorkItemProperty
+from .properties import is_rich_text
+
 MAX_CONDITIONS = 5
 
 
@@ -196,7 +199,8 @@ class Parser:
             raise PQLError(f"Expected a field or function at position {t.pos}.")
         nxt = self.toks[self.i + 1]
         if t.value == "cf" and nxt.kind == "punct" and nxt.value == "[":
-            raise PQLError("Custom property filters (cf[...]) are not available on this edition yet.")
+            self.count()
+            return self.custom_field()
         if nxt.kind == "punct" and nxt.value == "(":
             self.count()
             return self.predicate()
@@ -387,6 +391,45 @@ class Parser:
             return compare_q(name, kind, target, op, self.value())
         raise PQLError(f"Expected an operator after {name!r} at position {t.pos}.")
 
+    def custom_field(self):
+        """cf["<property uuid>"] <op> <value>, following the MCP reference's operator matrix."""
+        self.take()
+        self.take()
+        ref = self.expect("string", what="a property id in quotes")
+        self.expect("punct", "]")
+        prop = WorkItemProperty.objects.filter(workspace__slug=self.ctx.slug, pk=as_uuid(ref.value)).first()
+        if prop is None:
+            raise PQLError(f"Custom property {ref.value!r} not found.")
+        name = f'cf["{ref.value}"]'
+        if prop.property_type in ("EMAIL", "FILE", "FORMULA") or is_rich_text(prop):
+            raise PQLError(f"{name} ({prop.display_name}) cannot be filtered; drop this condition.")
+        has_value = Q(id__in=prop.values.values("issue_id"))
+        if self.accept("kw", "IS"):
+            negate = bool(self.accept("kw", "NOT"))
+            if not (self.accept("kw", "NULL") or self.accept("kw", "EMPTY")):
+                raise PQLError(f"Expected NULL or EMPTY after IS at position {self.tok.pos}.")
+            return has_value if negate else ~has_value
+        if self.accept("kw", "NOT"):
+            self.expect("kw", "IN")
+            return ~cf_in(prop, name, self.value_list())
+        if self.accept("kw", "IN"):
+            return cf_in(prop, name, self.value_list())
+        if self.accept("kw", "BETWEEN"):
+            if self.accept("punct", "("):
+                low = self.value()
+                self.expect("punct", ",")
+                high = self.value()
+                self.expect("punct", ")")
+            else:
+                low = self.value()
+                self.expect("kw", "AND")
+                high = self.value()
+            return cf_compare(prop, name, ">=", low) & cf_compare(prop, name, "<=", high)
+        if self.tok.kind == "op":
+            op = self.take().value
+            return cf_compare(prop, name, op, self.value())
+        raise PQLError(f"Expected an operator after {name} at position {self.tok.pos}.")
+
     def in_q(self, name, kind, target, values):
         if kind in ("date", "datetime", "bool", "text"):
             raise PQLError(f"IN is not supported for {name!r}.")
@@ -514,6 +557,57 @@ def compare_q(name, kind, target, op, value):
         q = Q(**{column: value})
         return ~q if op == "!=" else q
     return Q(**{f"{column}__{LOOKUPS[op]}": value})
+
+
+CF_OPS = {
+    "TEXT": {"=", "!=", "~"},
+    "URL": {"=", "!=", "~"},
+    "OPTION": {"=", "!="},
+    "RELATION": {"=", "!="},
+    "DECIMAL": {"=", "!=", ">", ">=", "<", "<="},
+    "DATETIME": {"=", "!=", ">", ">=", "<", "<="},
+    "BOOLEAN": {"=", "!="},
+}
+
+
+def cf_compare(prop, name, op, value):
+    ptype = prop.property_type
+    if op not in CF_OPS[ptype]:
+        raise PQLError(f"{op} is not supported for {ptype} property {name}.")
+    if isinstance(value, list):
+        raise PQLError(f"{name} {op} needs a single value; use IN for lists.")
+    if ptype in ("TEXT", "URL"):
+        if not isinstance(value, str):
+            raise PQLError(f"{name} needs a quoted string.")
+        lookup = {"value_text__icontains" if op == "~" else "value_text__iexact": value}
+    elif ptype == "OPTION":
+        lookup = {"value_option_id": as_uuid(value)}
+    elif ptype == "RELATION":
+        lookup = {"value_uuid": as_uuid(value)}
+    elif ptype == "DECIMAL":
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise PQLError(f"{name} is a number property: use a bare number, e.g. {name} = 5.")
+        column = "value_decimal" if op in ("=", "!=") else f"value_decimal__{LOOKUPS[op]}"
+        lookup = {column: value}
+    elif ptype == "BOOLEAN":
+        if not isinstance(value, bool):
+            raise PQLError(f"{name} is a true/false property: use = true or = false.")
+        lookup = {"value_boolean": value}
+    else:  # DATETIME
+        day = to_date(name, value)
+        column = "value_datetime__date" if op in ("=", "!=") else f"value_datetime__date__{LOOKUPS[op]}"
+        lookup = {column: day}
+    q = Q(id__in=prop.values.filter(**lookup).values("issue_id"))
+    return ~q if op == "!=" else q
+
+
+def cf_in(prop, name, values):
+    if prop.property_type not in ("OPTION", "RELATION"):
+        raise PQLError(f"IN only works on OPTION and RELATION properties, not {name}.")
+    q = Q()
+    for v in values:
+        q |= cf_compare(prop, name, "=", v)
+    return q if values else Q(pk__in=[])
 
 
 def relation_q(name, target):
