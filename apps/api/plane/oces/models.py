@@ -115,3 +115,60 @@ class WorkItemPropertyValue(BaseModel):
             models.Index(fields=["property", "value_uuid"], name="oces_pv_uuid_idx"),
             models.Index(fields=["issue", "property"], name="oces_pv_issue_idx"),
         ]
+
+
+class Initiative(BaseModel):
+    """A workspace goal that groups projects, epics and work items."""
+
+    STATES = ("DRAFT", "PLANNED", "ACTIVE", "COMPLETED", "CLOSED")
+
+    workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="oces_initiatives")
+    name = models.CharField(max_length=255)
+    description_html = models.TextField(blank=True, default="<p></p>")
+    description_stripped = models.TextField(blank=True, default="")
+    start_date = models.DateField(null=True)
+    end_date = models.DateField(null=True)
+    state = models.CharField(max_length=16, default="DRAFT")
+    lead = models.ForeignKey("db.User", on_delete=models.SET_NULL, null=True, related_name="+")
+    logo_props = models.JSONField(default=dict)
+    sort_order = models.FloatField(default=65535)
+
+    class Meta:
+        db_table = "oces_initiatives"
+        ordering = ("-created_at",)
+
+
+class InitiativeProject(BaseModel):
+    initiative = models.ForeignKey(Initiative, on_delete=models.CASCADE, related_name="project_links")
+    project = models.ForeignKey("db.Project", on_delete=models.CASCADE, related_name="oces_initiative_links")
+
+    class Meta:
+        db_table = "oces_initiative_projects"
+        constraints = [models.UniqueConstraint(fields=["initiative", "project"], name="oces_initiative_project_unique")]
+
+
+class InitiativeWorkItem(BaseModel):
+    """A linked work item. as_epic marks links made through the epics endpoint (their children count too)."""
+
+    initiative = models.ForeignKey(Initiative, on_delete=models.CASCADE, related_name="work_item_links")
+    issue = models.ForeignKey("db.Issue", on_delete=models.CASCADE, related_name="oces_initiative_links")
+    as_epic = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "oces_initiative_work_items"
+        constraints = [
+            models.UniqueConstraint(fields=["initiative", "issue", "as_epic"], name="oces_initiative_item_unique")
+        ]
+
+
+class InitiativeLabel(BaseModel):
+    workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="+")
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")
+    color = models.CharField(max_length=32, null=True)
+    sort_order = models.FloatField(default=65535)
+    initiatives = models.ManyToManyField(Initiative, related_name="labels", db_table="oces_initiative_label_links")
+
+    class Meta:
+        db_table = "oces_initiative_labels"
+        ordering = ("sort_order", "name")

@@ -96,3 +96,39 @@ export type TPropertyInput = Partial<
 /** One work item's values: property id -> value (a list for multi-value properties). */
 export type TPropertyValue = string | number | boolean | string[] | null;
 export type TPropertyValues = Record<string, TPropertyValue>;
+
+// ---------------------------------------------------------------- initiatives
+
+export type TInitiativeState = "DRAFT" | "PLANNED" | "ACTIVE" | "COMPLETED" | "CLOSED";
+
+export type TInitiative = {
+  id: string;
+  name: string;
+  description_html: string;
+  description_stripped: string;
+  start_date: string | null;
+  end_date: string | null;
+  state: TInitiativeState;
+  lead: string | null;
+  logo_props: Record<string, unknown>;
+  label_ids: string[];
+  project_ids: string[];
+  epic_ids: string[];
+  work_item_ids: string[];
+  progress: TEpicProgress;
+  created_by: string | null;
+};
+
+export type TInitiativeInput = Partial<
+  Pick<TInitiative, "name" | "description_html" | "start_date" | "end_date" | "state" | "lead">
+>;
+
+/** Linked work item as the internal API returns it (upstream work item serializer). */
+export type TLinkedWorkItem = {
+  id: string;
+  name: string;
+  sequence_id: number;
+  project: string;
+  state: string;
+  priority: string;
+};

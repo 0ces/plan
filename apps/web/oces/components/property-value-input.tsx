@@ -50,9 +50,9 @@ const dot = (color?: string) => (
   <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: color || "var(--text-color-tertiary)" }} />
 );
 
-const htmlToText = (html: string) => new DOMParser().parseFromString(html, "text/html").body.textContent ?? "";
+export const htmlToText = (html: string) => new DOMParser().parseFromString(html, "text/html").body.textContent ?? "";
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const textToHtml = (text: string) =>
+export const textToHtml = (text: string) =>
   text
     .split(/\n{2,}/)
     .map((p) => `<p>${escape(p).replace(/\n/g, "<br />")}</p>`)

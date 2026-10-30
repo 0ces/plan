@@ -36,7 +36,7 @@ PROJECT_KEYS = {
 }
 
 # Keys that may be switched on. Each feature step adds its key when it ships.
-BUILT_WORKSPACE_KEYS = frozenset()
+BUILT_WORKSPACE_KEYS = frozenset({"initiatives"})
 BUILT_PROJECT_KEYS = frozenset({"modules", "cycles", "views", "pages", "intakes", "work_item_types"})
 
 

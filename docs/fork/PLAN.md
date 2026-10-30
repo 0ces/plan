@@ -85,6 +85,8 @@ Goal: the whole web app updates by itself (lists, boards, work item detail, comm
 
 ### 3. Initiatives — 7 days
 
+**Built 2026-10-30.** Workspace feature `initiatives` can now be switched on (from the Initiatives page by an admin, or through the API/MCP). API: `initiatives/` CRUD, `projects/`, `epics/`, `work-items/` and `labels/` links, and `initiatives/labels/`, as in the contract. Guests get 403 everywhere; only admins or the creator delete. Progress counts, without duplicates, every work item in linked projects, linked work items and the children of linked epics, limited to what the viewer can see. Web: sidebar entry, list (state, dates, lead, project count, progress) and detail page (inline edits, description, linked projects, epics and work items via the existing work item search). Not yet: initiative labels in the web UI (API only), "updates through comments".
+
 - **Models**: `Initiative` (workspace, name, description_html, lead, start_date, end_date, `state` DRAFT/PLANNED/ACTIVE/COMPLETED/CLOSED, logo_props). Link tables `InitiativeProject`, `InitiativeEpic`, `InitiativeWorkItem`. `InitiativeLabel` and its link table.
 - **API**: `initiatives/[{id}/]` with `/projects/`, `/epics/`, `/work-items/` and `/labels/` sub-paths, plus `initiatives/labels/`, as in the contract. The workspace feature `initiatives` becomes true.
 - **Progress rollup**: for linked projects, all work items; for linked epics, their children; counted by state group, de-duplicated. Computed in SQL on request, with no denormalised counters yet.

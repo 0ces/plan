@@ -28,6 +28,8 @@ import {
   useWorkspaceNavigationPreferences,
 } from "@/hooks/use-navigation-preferences";
 import { SidebarItemBase } from "./sidebar-item";
+// OCES: initiatives (docs/fork/UPSTREAM_EDITS.md)
+import { InitiativesNavItem } from "@oces/components/initiatives-nav-item";
 
 export const SidebarMenuItems = observer(function SidebarMenuItems() {
   // routers
@@ -101,6 +103,7 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
           // oxlint-disable-next-line react/no-array-index-key
           <SidebarItemBase key={`static_${_index}`} item={item} />
         ))}
+        <InitiativesNavItem /> {/* OCES: initiatives */}
       </div>
       <Disclosure as="div" className="flex flex-col" defaultOpen={!!isWorkspaceMenuOpen}>
         <div className="group flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-placeholder hover:bg-layer-transparent-hover">

@@ -16,6 +16,13 @@ export const extendedRoutes: RouteConfigEntry[] = [
   layout("./(all)/layout.tsx", [
     layout(`${WS}/layout.tsx`, [
       layout(`${WS}/(projects)/layout.tsx`, [
+        layout(`${WS}/(projects)/(oces)/initiatives/layout.tsx`, [
+          route(":workspaceSlug/initiatives", `${WS}/(projects)/(oces)/initiatives/page.tsx`),
+          route(
+            ":workspaceSlug/initiatives/:initiativeId",
+            `${WS}/(projects)/(oces)/initiatives/[initiativeId]/page.tsx`
+          ),
+        ]),
         layout(`${PROJECT}/layout.tsx`, [
           layout(`${PROJECT}/(oces)/epics/layout.tsx`, [
             route(":workspaceSlug/projects/:projectId/epics", `${PROJECT}/(oces)/epics/page.tsx`),

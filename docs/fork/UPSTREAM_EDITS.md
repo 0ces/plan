@@ -17,7 +17,7 @@ Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`, `a
 | `apps/api/plane/app/serializers/issue.py`                                                | internal work item `type_id` field + project check; `type_id` in IssueSerializer fields |
 | `apps/api/plane/app/views/issue/base.py`                                                 | `type_id` in work item list/create field lists                                          |
 | `apps/api/plane/utils/grouper.py`                                                        | `type_id` in grouped list fields                                                        |
-| `apps/web/app/routes/extended.ts`                                                        | fork routes: project Epics page, Work item types settings                               |
+| `apps/web/app/routes/extended.ts`                                                        | fork routes: project Epics page, Work item types settings, Initiatives pages            |
 | `apps/web/core/components/workspace/sidebar/project-navigation.tsx`                      | Epics sidebar entry                                                                     |
 | `apps/web/core/components/issues/issue-detail/issue-identifier.tsx`                      | type icon before identifiers                                                            |
 | `apps/web/core/components/issues/issue-type-switcher.tsx`                                | type picker + epic progress on detail page                                              |
@@ -31,3 +31,4 @@ Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`, `a
 | `apps/web/core/components/issues/issue-detail/sidebar.tsx`                               | custom property rows in the work item sidebar                                           |
 | `apps/web/core/components/issues/peek-overview/properties.tsx`                           | custom property rows in the peek panel                                                  |
 | `apps/web/core/components/issues/issue-detail/issue-activity/activity/activity-list.tsx` | history row for custom property changes (`oces_property`)                               |
+| `apps/web/core/components/workspace/sidebar/sidebar-menu-items.tsx`                      | Initiatives link in the workspace sidebar                                               |

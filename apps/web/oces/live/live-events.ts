@@ -15,6 +15,7 @@ import { rootStore } from "@/lib/store-context";
 import { EIssueGroupedAction } from "@/store/issue/helpers/base-issues.store";
 import { IssueService } from "@/services/issue";
 import { epicsStore } from "@oces/store/epics.store";
+import { initiativesStore } from "@oces/store/initiatives.store";
 import { propertiesStore } from "@oces/store/properties.store";
 
 export type LiveEvent = {
@@ -183,6 +184,13 @@ export const applyEvents = async (slug: string, events: LiveEvent[], issueServic
   for (const e of events) {
     if (e.issue_id && e.project_id) touched.set(e.issue_id, e);
     else if (e.project_id === projectId) refetchList = true; // bulk changes, cycle/module membership…
+  }
+
+  // initiatives pages: reload the list, or the open initiative (its progress depends on any work item)
+  const initiativePage = window.location.pathname.match(/\/initiatives\/?([0-9a-f-]{36})?/);
+  if (initiativePage && events.length) {
+    if (initiativePage[1]) void initiativesStore.fetchOne(slug, initiativePage[1]).catch(() => undefined);
+    else void initiativesStore.fetchAll(slug).catch(() => undefined);
   }
 
   // project-level lists used across the UI

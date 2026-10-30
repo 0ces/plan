@@ -42,7 +42,7 @@ class TestWorkspaceFeatures:
         assert res.json() == {key: False for key in WORKSPACE_KEYS}
 
     def test_unbuilt_feature_cannot_be_enabled(self, api_key_client, workspace):
-        res = api_key_client.patch(ws_url(workspace.slug), {"initiatives": True}, format="json")
+        res = api_key_client.patch(ws_url(workspace.slug), {"releases": True}, format="json")
         assert res.status_code == status.HTTP_400_BAD_REQUEST
         assert res.json()["code"] == "feature_not_available"
 
