@@ -133,6 +133,7 @@ MIDDLEWARE = [
     "plane.middleware.request_body_size.RequestBodySizeLimitMiddleware",
     "plane.middleware.logger.APITokenLogMiddleware",
     "plane.middleware.logger.RequestLoggerMiddleware",
+    "plane.oces.live.LiveEventsMiddleware",  # OCES: live updates (docs/fork/UPSTREAM_EDITS.md)
 ]
 
 # Rest Framework settings

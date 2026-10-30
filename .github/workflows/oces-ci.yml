@@ -32,7 +32,7 @@ jobs:
       - name: AGPL header on our files
         run: |
           go install github.com/google/addlicense@v1.1.1
-          files=$(git ls-files 'apps/api/plane/oces/*.py' 'apps/web/oces/*.ts' 'apps/web/oces/*.tsx' 'packages/types/src/oces/*.ts' | grep -v '/migrations/' || true)
+          files=$(git ls-files 'apps/api/plane/oces/*.py' 'apps/web/oces/*.ts' 'apps/web/oces/*.tsx' 'apps/live/src/oces/*.ts' 'apps/live/tests/oces/*.ts' 'packages/types/src/oces/*.ts' | grep -v '/migrations/' || true)
           [ -z "$files" ] || "$(go env GOPATH)/bin/addlicense" -check -f COPYRIGHT.txt $files
 
   api-tests:
@@ -84,6 +84,9 @@ jobs:
           - name: plan-web
             context: .
             file: apps/web/Dockerfile.web
+          - name: plan-live
+            context: .
+            file: apps/live/Dockerfile.live
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
