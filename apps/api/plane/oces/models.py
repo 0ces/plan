@@ -172,3 +172,33 @@ class InitiativeLabel(BaseModel):
     class Meta:
         db_table = "oces_initiative_labels"
         ordering = ("sort_order", "name")
+
+
+class WorkItemPage(BaseModel):
+    """A page linked to a work item (CE has pages but no such link)."""
+
+    workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="+")
+    project = models.ForeignKey("db.Project", on_delete=models.CASCADE, related_name="+")
+    issue = models.ForeignKey("db.Issue", on_delete=models.CASCADE, related_name="oces_page_links")
+    page = models.ForeignKey("db.Page", on_delete=models.CASCADE, related_name="oces_work_item_links")
+
+    class Meta:
+        db_table = "oces_work_item_pages"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["issue", "page"],
+                condition=models.Q(deleted_at__isnull=True),
+                name="oces_work_item_page_unique",
+            )
+        ]
+
+
+class VersionStatus(BaseModel):
+    """Last result of the GitHub release check (one row). See version.py."""
+
+    fork_latest = models.CharField(max_length=64, null=True)
+    upstream_latest = models.CharField(max_length=64, null=True)
+    checked_at = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = "oces_version_status"

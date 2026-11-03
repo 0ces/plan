@@ -32,7 +32,7 @@ jobs:
       - name: AGPL header on our files
         run: |
           go install github.com/google/addlicense@v1.1.1
-          files=$(git ls-files 'apps/api/plane/oces/*.py' 'apps/web/oces/*.ts' 'apps/web/oces/*.tsx' 'apps/live/src/oces/*.ts' 'apps/live/tests/oces/*.ts' 'packages/types/src/oces/*.ts' | grep -v '/migrations/' || true)
+          files=$(git ls-files 'apps/api/plane/oces/*.py' 'apps/web/oces/*.ts' 'apps/web/oces/*.tsx' 'apps/admin/oces/*.tsx' 'apps/live/src/oces/*.ts' 'apps/live/tests/oces/*.ts' 'packages/types/src/oces/*.ts' | grep -v '/migrations/' || true)
           [ -z "$files" ] || "$(go env GOPATH)/bin/addlicense" -check -f COPYRIGHT.txt $files
 
   api-tests:
@@ -87,6 +87,9 @@ jobs:
           - name: plan-live
             context: .
             file: apps/live/Dockerfile.live
+          - name: plan-admin
+            context: .
+            file: apps/admin/Dockerfile.admin
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -103,5 +106,31 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ vars.DOCKER_REGISTRY }}/${{ matrix.name }}:${{ github.ref_name }}
+          # the backend serves these at /api/v1/oces/version/ and /api/instances/
+          build-args: |
+            OCES_VERSION=${{ github.ref_name }}
+            OCES_COMMIT=${{ github.sha }}
+          labels: |
+            org.opencontainers.image.version=${{ github.ref_name }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=registry,ref=${{ vars.DOCKER_REGISTRY }}/${{ matrix.name }}:buildcache
           cache-to: type=registry,ref=${{ vars.DOCKER_REGISTRY }}/${{ matrix.name }}:buildcache,mode=max
+
+  # A GitHub release per tag, so instances can link to its notes. Notes come from
+  # docs/fork/releases/<tag>.md when present, else GitHub's generated changelog.
+  release:
+    if: startsWith(github.ref, 'refs/tags/oces-v')
+    needs: [images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          notes="docs/fork/releases/$TAG.md"
+          if [ -f "$notes" ]; then set -- --notes-file "$notes"; else set -- --generate-notes; fi
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "$TAG" --verify-tag "$@"

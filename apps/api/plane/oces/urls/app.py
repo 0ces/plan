@@ -12,12 +12,14 @@ from plane.oces.urls.properties import routes
 from plane.oces.live import LiveAccessEndpoint
 from plane.oces.epic_views import EpicListEndpoint, EpicProgressEndpoint
 from plane.oces.type_views import WorkItemTypeDetailEndpoint, WorkItemTypeListCreateEndpoint
+from plane.oces.version_views import VersionEndpoint
 from plane.oces.views import ProjectFeaturesEndpoint, WorkspaceFeaturesEndpoint
 
 P = "workspaces/<str:slug>/projects/<uuid:project_id>/oces"
 
 urlpatterns = (
     [
+        path("oces/version/", VersionEndpoint.as_view(http_method_names=["get"]), name="oces-version"),
         path(
             "workspaces/<str:slug>/oces/live-access/",
             LiveAccessEndpoint.as_view(http_method_names=["get"]),

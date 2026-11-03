@@ -7,6 +7,7 @@
 import { observer } from "mobx-react";
 import { Outlet } from "react-router";
 import { ProjectsAppPowerKProvider } from "@/components/power-k/projects-app-provider";
+import { OcesVersionBanner } from "@oces/components/version-banner"; // OCES: release notices for admins
 // plane web components
 import { ProjectAppSidebar } from "./_sidebar";
 import { ExtendedProjectSidebar } from "./extended-project-sidebar";
@@ -21,6 +22,7 @@ function WorkspaceLayout() {
           <ProjectAppSidebar />
           <ExtendedProjectSidebar />
           <main className="relative flex h-full w-full flex-col overflow-hidden bg-surface-1">
+            <OcesVersionBanner />
             <Outlet />
           </main>
         </div>

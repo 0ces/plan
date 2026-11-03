@@ -55,6 +55,12 @@ RUN mkdir -p /code/plane/logs
 RUN chmod +x ./bin/*
 RUN chmod -R 777 /code
 
+# OCES: release tag and commit, set by .github/workflows/oces-ci.yml (read by plane/oces/version.py)
+ARG OCES_VERSION=dev
+ARG OCES_COMMIT=
+ENV OCES_VERSION=${OCES_VERSION} OCES_COMMIT=${OCES_COMMIT}
+LABEL org.opencontainers.image.version=${OCES_VERSION} org.opencontainers.image.revision=${OCES_COMMIT}
+
 # Expose container port and run entry point script
 EXPOSE 8000
 

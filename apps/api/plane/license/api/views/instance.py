@@ -165,6 +165,9 @@ class InstanceEndpoint(BaseAPIView):
 
         data["instance_changelog_url"] = settings.INSTANCE_CHANGELOG_URL
         data["is_self_managed"] = settings.IS_SELF_MANAGED
+        # OCES: running fork release, baked into the image at build time (plane/oces/version.py)
+        data["oces_version"] = os.environ.get("OCES_VERSION") or "dev"
+        data["oces_commit"] = os.environ.get("OCES_COMMIT") or None
 
         instance_data = serializer.data
         instance_data["workspaces_exist"] = Workspace.objects.count() >= 1

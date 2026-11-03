@@ -9,6 +9,7 @@ import { DocumentController } from "./document.controller";
 import { HealthController } from "./health.controller";
 import { PdfExportController } from "./pdf-export.controller";
 import { OcesEventsController } from "@/oces/events.controller"; // OCES: live updates
+import { OcesPageContentController } from "@/oces/page-content"; // OCES: pages public API
 
 export const CONTROLLERS = [
   CollaborationController,
@@ -16,4 +17,5 @@ export const CONTROLLERS = [
   HealthController,
   PdfExportController,
   OcesEventsController, // OCES: live updates
+  OcesPageContentController, // OCES: pages public API
 ];

@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 base="$(cat docs/fork/UPSTREAM_BASE)"
 list=docs/fork/UPSTREAM_EDITS.md
-owned='^(apps/api/plane/oces/|apps/web/oces/|apps/live/src/oces/|apps/live/tests/oces/|apps/web/app/.*/\(oces\)/|packages/types/src/oces/|docs/fork/|scripts/oces/|\.github/workflows/oces-)'
+owned='^(apps/api/plane/oces/|apps/web/oces/|apps/admin/oces/|apps/live/src/oces/|apps/live/tests/oces/|apps/web/app/.*/\(oces\)/|packages/types/src/oces/|docs/fork/|scripts/oces/|\.github/workflows/oces-)'
 fail=0
 # Upstream files we changed (A = files we added outside owned dirs also count).
 while IFS= read -r f; do

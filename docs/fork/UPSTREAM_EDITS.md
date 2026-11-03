@@ -5,7 +5,7 @@ edit carries an `OCES:` comment at the spot. `scripts/oces/check-upstream-edits.
 (CI) fails when a changed upstream file is missing from this list, or a listed
 file lost its marker. Keep edits to one-liners: includes, aliases, hook calls.
 
-Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`, `apps/live/src/oces/`, `apps/live/tests/oces/`,
+Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`, `apps/admin/oces/`, `apps/live/src/oces/`, `apps/live/tests/oces/`,
 `packages/types/src/oces/`, route folders named `(oces)` under `apps/web/app/`, `docs/fork/`, `scripts/oces/`, `.github/workflows/oces-*`.
 
 | File                                                                                     | Why                                                                                     |
@@ -26,9 +26,13 @@ Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`, `a
 | `apps/web/core/components/settings/project/sidebar/item-icon.tsx`                        | icon for the settings entry                                                             |
 | `packages/constants/src/settings/project.ts`                                             | Work item types settings entry                                                          |
 | `packages/types/src/settings.ts`                                                         | settings tab key                                                                        |
-| `apps/live/src/controllers/index.ts`                                                     | register the live-updates websocket (`/live/oces/events`)                               |
+| `apps/live/src/controllers/index.ts`                                                     | register the live-updates websocket (`/live/oces/events`) and `/live/oces/page-content` |
 | `apps/web/app/(all)/[workspaceSlug]/layout.tsx`                                          | mount `OcesLiveEvents` once per workspace                                               |
 | `apps/web/core/components/issues/issue-detail/sidebar.tsx`                               | custom property rows in the work item sidebar                                           |
 | `apps/web/core/components/issues/peek-overview/properties.tsx`                           | custom property rows in the peek panel                                                  |
 | `apps/web/core/components/issues/issue-detail/issue-activity/activity/activity-list.tsx` | history row for custom property changes (`oces_property`)                               |
 | `apps/web/core/components/workspace/sidebar/sidebar-menu-items.tsx`                      | Initiatives link in the workspace sidebar                                               |
+| `apps/api/plane/license/api/views/instance.py`                                           | `oces_version` / `oces_commit` in `/api/instances/` config                              |
+| `apps/api/Dockerfile.api`                                                                | bake `OCES_VERSION` / `OCES_COMMIT` build args into the image                           |
+| `apps/web/app/(all)/[workspaceSlug]/(projects)/layout.tsx`                               | release notices banner for workspace admins                                             |
+| `apps/admin/app/(all)/(dashboard)/layout.tsx`                                            | release notices banner in god-mode                                                      |

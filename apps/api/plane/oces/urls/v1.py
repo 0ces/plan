@@ -7,6 +7,7 @@
 from django.urls import path
 
 from plane.oces.urls.initiatives import routes as initiative_routes
+from plane.oces.urls.pages import routes as page_routes
 from plane.oces.urls.properties import routes
 
 from plane.oces.pql_views import (
@@ -16,10 +17,12 @@ from plane.oces.pql_views import (
     WorkspaceWorkItemListAPIEndpoint,
 )
 from plane.oces.type_views import WorkItemTypeDetailAPIEndpoint, WorkItemTypeListCreateAPIEndpoint
+from plane.oces.version_views import VersionAPIEndpoint
 from plane.oces.views import ProjectFeaturesAPIEndpoint, WorkspaceFeaturesAPIEndpoint
 
 urlpatterns = (
     [
+        path("oces/version/", VersionAPIEndpoint.as_view(http_method_names=["get"]), name="oces-v1-version"),
         path(
             "workspaces/<str:slug>/features/",
             WorkspaceFeaturesAPIEndpoint.as_view(http_method_names=["get", "patch"]),
@@ -64,4 +67,5 @@ urlpatterns = (
     ]
     + routes(True, "workspaces/<str:slug>", "workspaces/<str:slug>/projects/<uuid:project_id>")
     + initiative_routes(True, "workspaces/<str:slug>")
+    + page_routes("workspaces/<str:slug>", "workspaces/<str:slug>/projects/<uuid:project_id>")
 )

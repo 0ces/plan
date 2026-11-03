@@ -14,6 +14,7 @@ import { LogoSpinner } from "@/components/common/logo-spinner";
 import { NewUserPopup } from "@/components/common/new-user-popup";
 // hooks
 import { useUser } from "@/hooks/store";
+import { OcesVersionBanner } from "@/oces/version-banner"; // OCES: release notices
 // local components
 import type { Route } from "./+types/layout";
 import { AdminSidebar } from "./sidebar";
@@ -42,6 +43,7 @@ function AdminLayout(_props: Route.ComponentProps) {
         <AdminSidebar />
         <main className="relative flex h-full w-full flex-col overflow-hidden bg-surface-1">
           <AdminHeader />
+          <OcesVersionBanner />
           <div className="vertical-scrollbar scrollbar-md h-full w-full overflow-hidden overflow-y-scroll">
             <Outlet />
           </div>

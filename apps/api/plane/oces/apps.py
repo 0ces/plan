@@ -16,3 +16,13 @@ class OcesConfig(AppConfig):
         from . import work_item_types  # noqa: F401  registers the Issue pre_save signal
         from . import live  # noqa: F401  registers the activity task_postrun hook
         from . import properties  # noqa: F401  registers default property values on create
+
+        # GitHub release check every 6 hours (version.py); beat stores it in its database scheduler
+        from celery.schedules import crontab
+
+        from plane.celery import app
+
+        app.conf.beat_schedule["oces-version-check"] = {
+            "task": "plane.oces.tasks.check_versions",
+            "schedule": crontab(minute=17, hour="*/6"),
+        }
