@@ -14,7 +14,7 @@ import { useTranslation } from "@plane/i18n";
 import { MembersPropertyIcon, WorkItemsIcon } from "@plane/propel/icons";
 import type { ICycle } from "@plane/types";
 // plane ui
-import { Avatar, AvatarGroup, TextArea } from "@plane/ui";
+import { Avatar, AvatarGroup } from "@plane/ui";
 // helpers
 import { getFileURL } from "@plane/utils";
 // hooks
@@ -67,12 +67,11 @@ export const CycleSidebarDetails = observer(function CycleSidebarDetails(props: 
         : `${cycleDetails?.completed_estimate_points}/${cycleDetails?.total_estimate_points}`;
   return (
     <div className="flex w-full flex-col gap-5">
+      {/* OCES: plain text; a disabled TextArea measured once could cut the description short */}
       {cycleDetails?.description && (
-        <TextArea
-          className="ring-none !m-0 max-h-max w-full resize-none !border-0 bg-transparent !p-0 text-13 leading-5 text-secondary outline-none"
-          value={cycleDetails.description}
-          disabled
-        />
+        <p className="w-full text-13 leading-5 break-words whitespace-pre-wrap text-secondary">
+          {cycleDetails.description}
+        </p>
       )}
 
       <div className="flex flex-col gap-5 pt-2.5 pb-6">

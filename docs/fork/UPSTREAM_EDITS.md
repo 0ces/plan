@@ -36,3 +36,5 @@ Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`, `a
 | `apps/api/Dockerfile.api`                                                                | bake `OCES_VERSION` / `OCES_COMMIT` build args into the image                           |
 | `apps/web/app/(all)/[workspaceSlug]/(projects)/layout.tsx`                               | release notices banner for workspace admins                                             |
 | `apps/admin/app/(all)/(dashboard)/layout.tsx`                                            | release notices banner in god-mode                                                      |
+| `apps/web/core/components/modules/analytics-sidebar/root.tsx`                            | module description as plain text (disabled TextArea cut it off)                         |
+| `apps/web/core/components/cycles/analytics-sidebar/sidebar-details.tsx`                  | cycle description as plain text (same bug)                                              |
