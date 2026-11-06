@@ -9,7 +9,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { CustomSelect, EModalPosition, EModalWidth, Input, ModalCore, TextArea, ToggleSwitch } from "@plane/ui";
-import { propertiesStore } from "../store/properties.store";
+import { propertiesStore, type PropertiesStore } from "../store/properties.store";
 import type { TProperty, TPropertyInput } from "../types";
 
 /** The kinds a user picks from; each maps to the API's property_type (+ relation_type / settings). */
@@ -30,6 +30,14 @@ export const KINDS = [
   { key: "rich", label: "Rich text", input: { property_type: "RELATION", relation_type: "RICH_TEXT" } },
 ] as const satisfies readonly { key: string; label: string; input: TPropertyInput; multi?: boolean }[];
 
+type TKind = { key: string; label: string; input: TPropertyInput; multi?: boolean };
+
+/** Modules: no rich text (they have a description), plus links to other modules ("Depende de"). */
+export const MODULE_KINDS: readonly TKind[] = [
+  ...KINDS.filter((k) => k.key !== "rich"),
+  { key: "module", label: "Module", input: { property_type: "RELATION", relation_type: "MODULE" }, multi: true },
+];
+
 export const kindOf = (p: TProperty) =>
   KINDS.find(
     (k) =>
@@ -37,7 +45,12 @@ export const kindOf = (p: TProperty) =>
       (!("relation_type" in k.input) || k.input.relation_type === p.relation_type) &&
       (k.input.property_type !== "TEXT" ||
         k.input.settings.display_format === (p.settings?.display_format ?? "single-line"))
-  ) ?? (p.relation_type === "ISSUE" ? { key: "issue", label: "Work item", input: {}, multi: true } : KINDS[0]);
+  ) ??
+  (p.relation_type === "MODULE"
+    ? MODULE_KINDS[MODULE_KINDS.length - 1]
+    : p.relation_type === "ISSUE"
+      ? { key: "issue", label: "Work item", input: {}, multi: true }
+      : KINDS[0]);
 
 type Option = { id?: string; key: string; name: string; is_default: boolean };
 
@@ -51,9 +64,14 @@ type Props = {
   projectId: string;
   typeId: string;
   property?: TProperty;
+  /** Module properties pass their own store (scope id = project id) and kinds. */
+  store?: PropertiesStore;
+  kinds?: readonly TKind[];
 };
 
-export function PropertyModal({ isOpen, onClose, workspaceSlug, projectId, typeId, property }: Props) {
+export function PropertyModal(props: Props) {
+  const { isOpen, onClose, workspaceSlug, projectId, typeId, property } = props;
+  const { store = propertiesStore, kinds = KINDS } = props;
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [kind, setKind] = useState<string>("text");
@@ -74,9 +92,9 @@ export function PropertyModal({ isOpen, onClose, workspaceSlug, projectId, typeI
     );
   }, [isOpen, property]);
 
-  const spec = KINDS.find((k) => k.key === kind);
+  const spec: TKind | undefined = kinds.find((k) => k.key === kind);
   const isDropdown = kind === "dropdown";
-  const canMulti = !!spec && "multi" in spec && spec.multi;
+  const canMulti = !!spec?.multi;
   const cleanOptions = options.map((o) => ({ ...o, name: o.name.trim() })).filter((o) => o.name);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,13 +113,13 @@ export function PropertyModal({ isOpen, onClose, workspaceSlug, projectId, typeI
     };
     try {
       if (property) {
-        await propertiesStore.update(workspaceSlug, projectId, typeId, property.id, base);
+        await store.update(workspaceSlug, projectId, typeId, property.id, base);
         if (isDropdown) {
-          await propertiesStore.syncOptions(workspaceSlug, projectId, property, cleanOptions);
-          await propertiesStore.fetchForType(workspaceSlug, projectId, typeId, true);
+          await store.syncOptions(workspaceSlug, projectId, property, cleanOptions);
+          await store.fetchForType(workspaceSlug, projectId, typeId, true);
         }
       } else {
-        await propertiesStore.create(workspaceSlug, projectId, typeId, {
+        await store.create(workspaceSlug, projectId, typeId, {
           ...spec.input,
           ...base,
           options: isDropdown ? cleanOptions.map((o) => ({ name: o.name, is_default: o.is_default })) : undefined,
@@ -144,7 +162,7 @@ export function PropertyModal({ isOpen, onClose, workspaceSlug, projectId, typeI
             buttonClassName="border-[0.5px] border-subtle rounded-md px-3 py-2 text-13 w-36"
             label={<span>{property ? kindOf(property).label : (spec?.label ?? "Kind")}</span>}
           >
-            {KINDS.map((k) => (
+            {kinds.map((k) => (
               <CustomSelect.Option key={k.key} value={k.key}>
                 {k.label}
               </CustomSelect.Option>
@@ -202,10 +220,12 @@ export function PropertyModal({ isOpen, onClose, workspaceSlug, projectId, typeI
         )}
 
         <div className="flex flex-wrap gap-6">
-          <div className="flex items-center gap-2 text-13 text-secondary">
-            <ToggleSwitch value={required} onChange={setRequired} size="sm" label="Required when creating" />
-            Required when creating
-          </div>
+          {kinds === KINDS && (
+            <div className="flex items-center gap-2 text-13 text-secondary">
+              <ToggleSwitch value={required} onChange={setRequired} size="sm" label="Required when creating" />
+              Required when creating
+            </div>
+          )}
           {canMulti && (
             <div className="flex items-center gap-2 text-13 text-secondary">
               <ToggleSwitch value={multi} onChange={setMulti} size="sm" label="Allow several values" />

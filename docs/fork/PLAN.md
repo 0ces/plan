@@ -96,6 +96,10 @@ Goal: the whole web app updates by itself (lists, boards, work item detail, comm
 
 **Built 2026-11-03.** Public API for pages at the official paths (project and workspace scope, nesting, archive/restore, delete, work item links in `oces_work_item_pages`), following CE's page permissions. HTML writes go through the live server (`/live/oces/page-content`, protected by `LIVE_SERVER_SECRET_KEY`), which converts them with the editor's own code and swaps the content of a page that is open. Live down → 502, nothing written. Not available: collections (no CE model), web UI for workspace pages and for work item ↔ page links, reparenting. Version check: tag and commit baked into `plan-backend`, beat task every 6 h against GitHub, `/api/v1/oces/version/`, banners for workspace admins and in god-mode (own `plan-admin` image from release 4). GitHub releases are created by CI from `docs/fork/releases/<tag>.md`.
 
+### M. Module properties (added 2026-11-06)
+
+Custom fields on modules for teams that use module = epic, work items = stories, sub-items = tasks (Multiplied's TWT). Definitions reuse the work item property table with `entity=MODULE` (the default manager hides them from every work item path); values live in `oces_module_property_values`. Same kinds as work item properties minus rich text, plus a MODULE relation for "depends on". Work item counts, points and % progress are computed from the module's top-level work items, never typed. Settings page, side panel rows, list chips. The MCP fork 0ces/plane-mcp-server adds a `module_property` tool. Release notes: releases/oces-v1.4.3-6.md.
+
 ### 4. Releases — 7 days
 
 - **Models**: `Release` (workspace, name, `version`, `status` unreleased/released/cancelled, start_date, release_date, description_html = release notes, lead). `ReleaseWorkItem`. `ReleaseLabel` and its link table. `ReleaseTag`. `ReleaseComment`. `ReleaseLink`.

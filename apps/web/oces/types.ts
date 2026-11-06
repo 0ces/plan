@@ -48,7 +48,7 @@ export type TEpic = {
 // ---------------------------------------------------------------- custom properties
 
 export type TPropertyType = "TEXT" | "DECIMAL" | "BOOLEAN" | "DATETIME" | "OPTION" | "URL" | "EMAIL" | "RELATION";
-export type TRelationType = "USER" | "ISSUE" | "RICH_TEXT";
+export type TRelationType = "USER" | "ISSUE" | "RICH_TEXT" | "MODULE";
 
 export type TPropertyOption = {
   id: string;

@@ -4,6 +4,7 @@
 
 from django.db import models
 
+from plane.db.mixins import SoftDeletionManager
 from plane.db.models import BaseModel
 
 
@@ -31,8 +32,25 @@ class ProjectFeature(BaseModel):
         db_table = "oces_project_features"
 
 
+class _EntityManager(SoftDeletionManager):
+    def __init__(self, entity):
+        super().__init__()
+        self.entity = entity
+
+    def get_queryset(self):
+        return super().get_queryset().filter(entity=self.entity)
+
+
 class WorkItemProperty(BaseModel):
-    """A custom field. Lives in a workspace, optionally a project; shown on the types it is linked to."""
+    """A custom field. Lives in a workspace, optionally a project; shown on the types it is linked to.
+
+    entity=MODULE rows are module properties (project-level, values in ModulePropertyValue).
+    `objects` only returns work item properties so module ones never show up on work items.
+    """
+
+    objects = _EntityManager("ISSUE")
+    modules = _EntityManager("MODULE")
+    all_objects = models.Manager()
 
     workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="oces_properties")
     project = models.ForeignKey("db.Project", on_delete=models.CASCADE, null=True, related_name="oces_properties")
@@ -53,6 +71,7 @@ class WorkItemProperty(BaseModel):
     validation_rules = models.JSONField(null=True)
     external_source = models.CharField(max_length=255, null=True)
     external_id = models.CharField(max_length=255, null=True)
+    entity = models.CharField(max_length=16, default="ISSUE")
 
     class Meta:
         db_table = "oces_work_item_properties"
@@ -114,6 +133,31 @@ class WorkItemPropertyValue(BaseModel):
             models.Index(fields=["property", "value_datetime"], name="oces_pv_datetime_idx"),
             models.Index(fields=["property", "value_uuid"], name="oces_pv_uuid_idx"),
             models.Index(fields=["issue", "property"], name="oces_pv_issue_idx"),
+        ]
+
+
+class ModulePropertyValue(BaseModel):
+    """One value of a module property on a module. Multi-value properties have one row per value."""
+
+    workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="+")
+    project = models.ForeignKey("db.Project", on_delete=models.CASCADE, related_name="+")
+    module = models.ForeignKey("db.Module", on_delete=models.CASCADE, related_name="oces_property_values")
+    property = models.ForeignKey(WorkItemProperty, on_delete=models.CASCADE, related_name="module_values")
+    value_text = models.TextField(null=True)
+    value_boolean = models.BooleanField(null=True)
+    value_decimal = models.DecimalField(max_digits=30, decimal_places=10, null=True)
+    value_datetime = models.DateTimeField(null=True)
+    value_uuid = models.UUIDField(null=True)
+    value_option = models.ForeignKey(WorkItemPropertyOption, on_delete=models.CASCADE, null=True, related_name="+")
+    external_source = models.CharField(max_length=255, null=True)
+    external_id = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        db_table = "oces_module_property_values"
+        ordering = ("created_at",)
+        indexes = [
+            models.Index(fields=["module", "property"], name="oces_mpv_module_idx"),
+            models.Index(fields=["property", "value_uuid"], name="oces_mpv_uuid_idx"),
         ]
 
 

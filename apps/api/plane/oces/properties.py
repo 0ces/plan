@@ -24,7 +24,7 @@ from django.utils.html import strip_tags
 from django.utils.text import slugify
 from rest_framework.exceptions import ValidationError
 
-from plane.db.models import Issue, IssueActivity, ProjectMember, User, WorkspaceMember
+from plane.db.models import Issue, IssueActivity, Module, ProjectMember, User, WorkspaceMember
 from plane.utils.content_validator import validate_html_content
 
 from .models import WorkItemProperty, WorkItemPropertyOption, WorkItemPropertyValue, WorkItemTypeProperty
@@ -43,7 +43,7 @@ PROPERTY_TYPES = {
     "CASCADING",
 }
 NOT_YET = {"FILE", "FORMULA", "CASCADING"}
-RELATION_TYPES = {"ISSUE", "USER", "RELEASE", "RICH_TEXT"}
+RELATION_TYPES = {"ISSUE", "USER", "RELEASE", "RICH_TEXT", "MODULE"}
 RELATION_NOT_YET = {"RELEASE"}
 TEXT_FORMATS = {"single-line", "multi-line", "readonly"}
 DATE_FORMATS = {"MMM dd, yyyy", "dd/MM/yyyy", "MM/dd/yyyy", "yyyy/MM/dd"}
@@ -79,6 +79,11 @@ OPTION_FIELDS = {
 }
 
 
+def stored_values(prop):
+    """The value rows of a definition, whichever entity it is for."""
+    return prop.module_values if prop.entity == "MODULE" else prop.values
+
+
 def is_rich_text(prop):
     return prop.property_type == "RELATION" and prop.relation_type == "RICH_TEXT"
 
@@ -86,7 +91,7 @@ def is_rich_text(prop):
 # ---------------------------------------------------------------- definitions
 
 
-def clean_definition(data, instance=None):
+def clean_definition(data, instance=None, entity="ISSUE"):
     """Validate a create/update body. Returns the fields to save; raises ValidationError (400)."""
     if not isinstance(data, dict):
         raise ValidationError({"error": "Send a JSON object."})
@@ -113,8 +118,10 @@ def clean_definition(data, instance=None):
         raise ValidationError({"property_type": f"property_type must be one of {sorted(PROPERTY_TYPES)}."})
     if ptype in NOT_YET:
         raise ValidationError({"property_type": f"{ptype} properties are not supported on this edition yet."})
-    if instance and "property_type" in out and ptype != instance.property_type and instance.values.exists():
-        raise ValidationError({"property_type": "property_type cannot change while work items have values."})
+    if instance:
+        entity = instance.entity
+    if instance and "property_type" in out and ptype != instance.property_type and stored_values(instance).exists():
+        raise ValidationError({"property_type": "property_type cannot change while values are set."})
 
     if ptype == "RELATION":
         rtype = merged["relation_type"]
@@ -122,6 +129,8 @@ def clean_definition(data, instance=None):
             raise ValidationError({"relation_type": "relation_type is required for RELATION properties."})
         if rtype in RELATION_NOT_YET:
             raise ValidationError({"relation_type": f"{rtype} relations are not supported on this edition yet."})
+        if (rtype == "MODULE" and entity != "MODULE") or (rtype == "RICH_TEXT" and entity == "MODULE"):
+            raise ValidationError({"relation_type": f"{rtype} relations are not available here."})
     else:
         out["relation_type"] = None
 
@@ -140,14 +149,15 @@ def clean_definition(data, instance=None):
     else:
         out["settings"] = None
 
-    multi_ok = ptype == "OPTION" or (ptype == "RELATION" and merged["relation_type"] in ("USER", "ISSUE"))
+    multi_ok = ptype == "OPTION" or (ptype == "RELATION" and merged["relation_type"] in ("USER", "ISSUE", "MODULE"))
     if merged["is_multi"] and not multi_ok:
-        raise ValidationError({"is_multi": "Only OPTION and USER/ISSUE relation properties can be multi-value."})
+        raise ValidationError({"is_multi": "Only OPTION and USER/ISSUE/MODULE relation properties can be multi-value."})
     if instance and "is_multi" in out and not out["is_multi"] and instance.is_multi:
-        many = instance.values.values("issue_id").annotate(n=Count("id"))
+        owner = "module_id" if entity == "MODULE" else "issue_id"
+        many = stored_values(instance).values(owner).annotate(n=Count("id"))
         if many.filter(n__gt=1).exists():
             raise ValidationError(
-                {"is_multi": "Some work items have several values. Remove them before turning is_multi off."}
+                {"is_multi": "Some items have several values. Remove them before turning is_multi off."}
             )
 
     if "default_value" in out:
@@ -208,8 +218,31 @@ def save_option(prop, data, instance=None):
 
 
 @transaction.atomic
-def create_property(*, workspace_id, project_id, issue_type, data, scope_qs):
-    fields = clean_definition(data)
+def replace_options(prop, items):
+    """Make the option list match `items` ({id?, name, color?, is_default?}): matched by id, then by name;
+    new names are added, options left out are deleted (with the values that use them)."""
+    if prop.property_type != "OPTION":
+        raise ValidationError({"options": "Only OPTION properties have options."})
+    if not isinstance(items, list) or not all(isinstance(i, dict) for i in items):
+        raise ValidationError({"options": "options must be a list of objects."})
+    current = list(prop.options.all())
+    by_id = {str(o.id): o for o in current}
+    by_name = {o.name.lower(): o for o in current}
+    keep = []
+    for index, item in enumerate(items):
+        option = by_id.get(str(item.get("id"))) or by_name.get(str(item.get("name") or "").strip().lower())
+        data = {**item, "sort_order": (index + 1) * 10_000}
+        data.pop("id", None)
+        if option and str(data.get("name") or "").strip().lower() == option.name.lower():
+            data.pop("name")  # unchanged name: skip the duplicate-name check
+        saved = save_option(prop, data, option)
+        keep.append(saved.id)
+    prop.options.exclude(pk__in=keep).delete(soft=False)
+
+
+@transaction.atomic
+def create_property(*, workspace_id, project_id, issue_type, data, scope_qs, entity="ISSUE"):
+    fields = clean_definition(data, entity=entity)
     check_unique_name(scope_qs, fields["display_name"])
     if (
         fields["property_type"] == "OPTION"
@@ -219,8 +252,8 @@ def create_property(*, workspace_id, project_id, issue_type, data, scope_qs):
         raise ValidationError({"options": "options must be a list."})
     last = scope_qs.order_by("-sort_order").values_list("sort_order", flat=True).first()
     fields.setdefault("sort_order", (last or 0) + 10_000)
-    prop = WorkItemProperty.objects.create(
-        workspace_id=workspace_id, project_id=project_id, issue_type=issue_type, **fields
+    prop = WorkItemProperty.all_objects.create(
+        workspace_id=workspace_id, project_id=project_id, issue_type=issue_type, entity=entity, **fields
     )
     if issue_type is not None:
         WorkItemTypeProperty.objects.create(issue_type=issue_type, property=prop)
@@ -242,7 +275,7 @@ def update_property(prop, data, scope_qs):
 
 @transaction.atomic
 def delete_property(prop):
-    prop.values.all().delete(soft=False)
+    stored_values(prop).all().delete(soft=False)
     WorkItemTypeProperty.objects.filter(property=prop).delete(soft=False)
     prop.options.all().delete(soft=False)
     prop.delete(soft=False)
@@ -272,7 +305,9 @@ def _as_uuid(raw):
 
 
 def parse_values(prop, raw, issue):
-    """Turn a request value into a list of column dicts, one per stored row."""
+    """Turn a request value into a list of column dicts, one per stored row.
+
+    `issue` is the owner of the value: a work item, or a module for module properties."""
     ptype = prop.property_type
     if is_rich_text(prop):
         if not isinstance(raw, dict) or not isinstance(raw.get("description_html"), str):
@@ -345,6 +380,11 @@ def parse_values(prop, raw, issue):
             elif prop.relation_type == "ISSUE":
                 if not Issue.issue_objects.filter(workspace_id=issue.workspace_id, pk=target).exists():
                     raise ValidationError({"value": f"Work item {item} not found in this workspace."})
+            elif prop.relation_type == "MODULE":
+                if target == issue.pk:
+                    raise ValidationError({"value": "A module cannot link to itself."})
+                if not Module.objects.filter(project_id=issue.project_id, pk=target).exists():
+                    raise ValidationError({"value": f"Module {item} not found in this project."})
             rows.append({"value_uuid": target})
     return rows
 
@@ -407,6 +447,9 @@ def display(prop, rows):
         elif prop.relation_type == "USER" and r.value_uuid:
             user = User.objects.filter(pk=r.value_uuid).only("display_name").first()
             parts.append(user.display_name if user else str(r.value_uuid))
+        elif prop.relation_type == "MODULE" and r.value_uuid:
+            module = Module.all_objects.filter(pk=r.value_uuid).only("name").first()
+            parts.append(module.name if module else str(r.value_uuid))
         elif prop.relation_type == "ISSUE" and r.value_uuid:
             item = Issue.all_objects.filter(pk=r.value_uuid).select_related("project").first()
             parts.append(f"{item.project.identifier}-{item.sequence_id}" if item else str(r.value_uuid))

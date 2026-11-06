@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-import { AlignLeft, Link, Mail, Type } from "lucide-react";
+import { AlignLeft, Boxes, Link, Mail, Type } from "lucide-react";
 import {
   BooleanPropertyIcon,
   DropdownPropertyIcon,
@@ -19,6 +19,7 @@ import { CustomSearchSelect, ToggleSwitch } from "@plane/ui";
 import { cn, renderFormattedPayloadDate } from "@plane/utils";
 import { DateDropdown } from "@/components/dropdowns/date";
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
+import { useModule } from "@/hooks/store/use-module";
 import { isEmptyValue, isRichText } from "../store/properties.store";
 import type { TProperty, TPropertyValue } from "../types";
 
@@ -31,6 +32,8 @@ type Props = {
   /** compact controls for the sidebar; the create form uses bordered ones */
   variant?: "sidebar" | "form";
   error?: string;
+  /** module properties: the module being edited, left out of "link to modules" choices */
+  ownerId?: string;
 };
 
 export const propertyIcon = (p: TProperty) => {
@@ -40,6 +43,7 @@ export const propertyIcon = (p: TProperty) => {
   if (p.property_type === "DECIMAL") return HashPropertyIcon;
   if (p.property_type === "RELATION" && p.relation_type === "USER") return UserPropertyIcon;
   if (p.property_type === "RELATION" && p.relation_type === "ISSUE") return RelationPropertyIcon;
+  if (p.property_type === "RELATION" && p.relation_type === "MODULE") return Boxes;
   if (p.property_type === "URL") return Link;
   if (p.property_type === "EMAIL") return Mail;
   if (isRichText(p) || p.settings?.display_format === "multi-line") return AlignLeft;
@@ -105,7 +109,8 @@ function TextField(props: {
 }
 
 export const PropertyValueInput = observer(function PropertyValueInput(props: Props) {
-  const { property: p, projectId, value, onChange, disabled = false, variant = "sidebar", error } = props;
+  const { property: p, projectId, value, onChange, disabled = false, variant = "sidebar", error, ownerId } = props;
+  const { getProjectModuleDetails } = useModule();
   const form = variant === "form";
   const box = cn(
     "w-full rounded-sm bg-transparent px-2 py-1 text-body-xs-medium text-primary outline-none placeholder:text-placeholder",
@@ -200,6 +205,29 @@ export const PropertyValueInput = observer(function PropertyValueInput(props: Pr
         multiple={false}
         value={typeof value === "string" ? value : null}
         onChange={(v: string | null) => onChange(v === value ? null : v)}
+      />
+    );
+  }
+
+  if (p.property_type === "RELATION" && p.relation_type === "MODULE") {
+    const modules = (getProjectModuleDetails(projectId) ?? []).filter((m) => m.id !== ownerId);
+    const selected = Array.isArray(value) ? value : value ? [String(value)] : [];
+    const names = modules.filter((m) => selected.includes(m.id)).map((m) => m.name);
+    const common = {
+      disabled,
+      maxHeight: "lg" as const,
+      className: "w-full",
+      buttonClassName: cn(box, "h-7.5 text-left", !selected.length && "text-placeholder"),
+      label: <span className="truncate">{names.length ? names.join(", ") : placeholder}</span>,
+      options: modules.map((m) => ({ value: m.id, query: m.name, content: <span>{m.name}</span> })),
+    };
+    return p.is_multi ? (
+      <CustomSearchSelect {...common} multiple value={selected} onChange={(v: string[]) => onChange(v)} />
+    ) : (
+      <CustomSearchSelect
+        {...common}
+        value={selected[0] ?? null}
+        onChange={(v: string) => onChange(v === selected[0] ? null : v)}
       />
     );
   }

@@ -7,6 +7,7 @@ under an `oces/` prefix, the web app (/api/workspaces/...)."""
 
 from django.urls import path
 
+from plane.oces import module_property_views as mv
 from plane.oces import property_views as v
 
 ALL = ["get", "post", "patch", "delete"]
@@ -73,6 +74,41 @@ def routes(public, ws, proj):
             f"{ws}/work-item-properties/<uuid:property_id>/options/<uuid:option_id>/",
             view("WorkspaceOptions", ["get", "patch", "delete"]),
             name=f"{tag}-ws-property-option",
+        ),
+    ]
+    mview = lambda name, methods: getattr(mv, name + s).as_view(http_method_names=methods)  # noqa: E731
+    mp = f"{proj}/module-properties"
+    out += [
+        path(f"{mp}/", mview("ModulePropertyList", ["get", "post"]), name=f"{tag}-module-properties"),
+        path(
+            f"{mp}/<uuid:property_id>/",
+            mview("ModulePropertyDetail", ["get", "patch", "delete"]),
+            name=f"{tag}-module-property",
+        ),
+        path(
+            f"{mp}/<uuid:property_id>/options/",
+            mview("ModuleOptions", ["get", "post"]),
+            name=f"{tag}-module-property-options",
+        ),
+        path(
+            f"{mp}/<uuid:property_id>/options/<uuid:option_id>/",
+            mview("ModuleOptions", ["get", "patch", "delete"]),
+            name=f"{tag}-module-property-option",
+        ),
+        path(
+            f"{proj}/modules/<uuid:module_id>/module-properties/<uuid:property_id>/values/",
+            mview("ModuleValues", ALL),
+            name=f"{tag}-module-property-values",
+        ),
+        path(
+            f"{proj}/modules/<uuid:module_id>/module-property-values/",
+            mview("ModuleAllValues", ["get"]),
+            name=f"{tag}-module-all-values",
+        ),
+        path(
+            f"{proj}/module-property-values/",
+            mview("ProjectModuleValues", ["get"]),
+            name=f"{tag}-project-module-values",
         ),
     ]
     if not public:

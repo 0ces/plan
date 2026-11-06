@@ -5,10 +5,8 @@
  */
 
 import { action, makeObservable, observable, runInAction } from "mobx";
-import { PropertiesService } from "../services/properties.service";
+import { ModulePropertiesService, PropertiesService } from "../services/properties.service";
 import type { TProperty, TPropertyInput, TPropertyOption, TPropertyValue, TPropertyValues } from "../types";
-
-const service = new PropertiesService();
 
 export const isRichText = (p: TProperty) => p.property_type === "RELATION" && p.relation_type === "RICH_TEXT";
 
@@ -32,13 +30,14 @@ export const defaultValueOf = (p: TProperty): TPropertyValue | undefined => {
   return p.is_multi ? [first] : first;
 };
 
-/** Properties per work item type, and values per work item. One shared instance, like the types store. */
+/** Properties per work item type, and values per work item. One shared instance, like the types store.
+ * The module instance keys definitions by project id and values by module id. */
 export class PropertiesStore {
   byType: Record<string, TProperty[]> = {};
   valuesByIssue: Record<string, TPropertyValues> = {};
   private loading: Record<string, Promise<void> | undefined> = {};
 
-  constructor() {
+  constructor(private service: PropertiesService = new PropertiesService()) {
     makeObservable(this, {
       byType: observable,
       valuesByIssue: observable,
@@ -54,7 +53,7 @@ export class PropertiesStore {
 
   fetchForType = (slug: string, projectId: string, typeId: string, force = false): Promise<void> => {
     if (!force && this.loading[typeId]) return this.loading[typeId]!;
-    const load = service.listForType(slug, projectId, typeId).then((list) =>
+    const load = this.service.listForType(slug, projectId, typeId).then((list) =>
       runInAction(() => {
         this.byType[typeId] = list;
       })
@@ -66,7 +65,7 @@ export class PropertiesStore {
   };
 
   fetchValues = async (slug: string, projectId: string, issueId: string) => {
-    const values = await service.values(slug, projectId, issueId);
+    const values = await this.service.values(slug, projectId, issueId);
     runInAction(() => {
       this.valuesByIssue[issueId] = values;
     });
@@ -79,8 +78,8 @@ export class PropertiesStore {
       this.valuesByIssue[issueId] = { ...this.valuesByIssue[issueId], [property.id]: value };
     });
     try {
-      if (isEmptyValue(value)) await service.clearValue(slug, projectId, issueId, property.id);
-      else await service.setValue(slug, projectId, issueId, property.id, toApiValue(property, value));
+      if (isEmptyValue(value)) await this.service.clearValue(slug, projectId, issueId, property.id);
+      else await this.service.setValue(slug, projectId, issueId, property.id, toApiValue(property, value));
     } catch (error) {
       runInAction(() => {
         this.valuesByIssue[issueId] = { ...this.valuesByIssue[issueId], [property.id]: before ?? null };
@@ -95,10 +94,10 @@ export class PropertiesStore {
     await Promise.all(
       this.getActiveForType(typeId).map((p) => {
         const v = values[p.id];
-        if (!isEmptyValue(v)) return service.setValue(slug, projectId, issueId, p.id, toApiValue(p, v));
+        if (!isEmptyValue(v)) return this.service.setValue(slug, projectId, issueId, p.id, toApiValue(p, v));
         // emptied in the form: also drop a default the server added on create
         if (!isEmptyValue(before[p.id]) || defaultValueOf(p) !== undefined)
-          return service.clearValue(slug, projectId, issueId, p.id).catch(() => undefined);
+          return this.service.clearValue(slug, projectId, issueId, p.id).catch(() => undefined);
         return undefined;
       })
     );
@@ -107,17 +106,17 @@ export class PropertiesStore {
 
   // definitions (settings page)
   create = async (slug: string, projectId: string, typeId: string, data: TPropertyInput) => {
-    await service.create(slug, projectId, typeId, data);
+    await this.service.create(slug, projectId, typeId, data);
     await this.fetchForType(slug, projectId, typeId, true);
   };
 
   update = async (slug: string, projectId: string, typeId: string, propertyId: string, data: TPropertyInput) => {
-    await service.update(slug, projectId, propertyId, data);
+    await this.service.update(slug, projectId, propertyId, data);
     await this.fetchForType(slug, projectId, typeId, true);
   };
 
   remove = async (slug: string, projectId: string, typeId: string, propertyId: string) => {
-    await service.remove(slug, projectId, propertyId);
+    await this.service.remove(slug, projectId, propertyId);
     await this.fetchForType(slug, projectId, typeId, true);
   };
 
@@ -130,7 +129,7 @@ export class PropertiesStore {
   ) => {
     const keep = new Set(wanted.filter((o) => o.id).map((o) => o.id));
     const removed = property.options.filter((old) => !keep.has(old.id));
-    await Promise.all(removed.map((old) => service.removeOption(slug, projectId, property.id, old.id)));
+    await Promise.all(removed.map((old) => this.service.removeOption(slug, projectId, property.id, old.id)));
     await Promise.all(
       wanted.map((o, index) => {
         const data: Partial<TPropertyOption> = {
@@ -139,11 +138,20 @@ export class PropertiesStore {
           sort_order: (index + 1) * 10_000,
         };
         return o.id
-          ? service.updateOption(slug, projectId, property.id, o.id, data)
-          : service.createOption(slug, projectId, property.id, data);
+          ? this.service.updateOption(slug, projectId, property.id, o.id, data)
+          : this.service.createOption(slug, projectId, property.id, data);
       })
     );
   };
 }
 
 export const propertiesStore = new PropertiesStore();
+
+const moduleService = new ModulePropertiesService();
+export const modulePropertiesStore = new PropertiesStore(moduleService);
+
+/** Values of every module in a project, for the module list. */
+export const fetchModuleListValues = async (slug: string, projectId: string) => {
+  const all = await moduleService.projectValues(slug, projectId);
+  runInAction(() => Object.assign(modulePropertiesStore.valuesByIssue, all));
+};

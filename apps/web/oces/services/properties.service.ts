@@ -14,11 +14,28 @@ export class PropertiesService extends APIService {
     super(API_BASE_URL);
   }
 
-  private base(slug: string, projectId: string) {
+  protected base(slug: string, projectId: string) {
     return `/api/workspaces/${slug}/projects/${projectId}/oces`;
   }
 
-  private async run<T>(request: Promise<{ data: T }>): Promise<T> {
+  /** Definitions of one type (list/create); `scopeId` is the type id. */
+  protected defs(slug: string, projectId: string, scopeId: string) {
+    return `${this.base(slug, projectId)}/work-item-types/${scopeId}/work-item-properties/`;
+  }
+
+  protected def(slug: string, projectId: string, propertyId: string) {
+    return `${this.base(slug, projectId)}/work-item-properties/${propertyId}/`;
+  }
+
+  protected allValues(slug: string, projectId: string, ownerId: string) {
+    return `${this.base(slug, projectId)}/work-items/${ownerId}/property-values/`;
+  }
+
+  protected value(slug: string, projectId: string, ownerId: string, propertyId: string) {
+    return `${this.base(slug, projectId)}/work-items/${ownerId}/work-item-properties/${propertyId}/values/`;
+  }
+
+  protected async run<T>(request: Promise<{ data: T }>): Promise<T> {
     try {
       return (await request).data;
     } catch (error: any) {
@@ -27,54 +44,71 @@ export class PropertiesService extends APIService {
   }
 
   listForType(slug: string, projectId: string, typeId: string): Promise<TProperty[]> {
-    return this.run(this.get(`${this.base(slug, projectId)}/work-item-types/${typeId}/work-item-properties/`));
+    return this.run(this.get(this.defs(slug, projectId, typeId)));
   }
 
   create(slug: string, projectId: string, typeId: string, data: TPropertyInput): Promise<TProperty> {
-    return this.run(this.post(`${this.base(slug, projectId)}/work-item-types/${typeId}/work-item-properties/`, data));
+    return this.run(this.post(this.defs(slug, projectId, typeId), data));
   }
 
   update(slug: string, projectId: string, propertyId: string, data: TPropertyInput): Promise<TProperty> {
-    return this.run(this.patch(`${this.base(slug, projectId)}/work-item-properties/${propertyId}/`, data));
+    return this.run(this.patch(this.def(slug, projectId, propertyId), data));
   }
 
   remove(slug: string, projectId: string, propertyId: string): Promise<void> {
-    return this.run(this.delete(`${this.base(slug, projectId)}/work-item-properties/${propertyId}/`));
+    return this.run(this.delete(this.def(slug, projectId, propertyId)));
   }
 
   createOption(slug: string, projectId: string, propertyId: string, data: Partial<TPropertyOption>) {
-    return this.run<TPropertyOption>(
-      this.post(`${this.base(slug, projectId)}/work-item-properties/${propertyId}/options/`, data)
-    );
+    return this.run<TPropertyOption>(this.post(`${this.def(slug, projectId, propertyId)}options/`, data));
   }
 
   updateOption(slug: string, projectId: string, propertyId: string, optionId: string, data: Partial<TPropertyOption>) {
-    return this.run<TPropertyOption>(
-      this.patch(`${this.base(slug, projectId)}/work-item-properties/${propertyId}/options/${optionId}/`, data)
-    );
+    return this.run<TPropertyOption>(this.patch(`${this.def(slug, projectId, propertyId)}options/${optionId}/`, data));
   }
 
   removeOption(slug: string, projectId: string, propertyId: string, optionId: string): Promise<void> {
-    return this.run(
-      this.delete(`${this.base(slug, projectId)}/work-item-properties/${propertyId}/options/${optionId}/`)
-    );
+    return this.run(this.delete(`${this.def(slug, projectId, propertyId)}options/${optionId}/`));
   }
 
   values(slug: string, projectId: string, issueId: string): Promise<TPropertyValues> {
-    return this.run(this.get(`${this.base(slug, projectId)}/work-items/${issueId}/property-values/`));
+    return this.run(this.get(this.allValues(slug, projectId, issueId)));
   }
 
   setValue(slug: string, projectId: string, issueId: string, propertyId: string, value: unknown) {
-    return this.run(
-      this.post(`${this.base(slug, projectId)}/work-items/${issueId}/work-item-properties/${propertyId}/values/`, {
-        value,
-      })
-    );
+    return this.run(this.post(this.value(slug, projectId, issueId, propertyId), { value }));
   }
 
   clearValue(slug: string, projectId: string, issueId: string, propertyId: string): Promise<void> {
-    return this.run(
-      this.delete(`${this.base(slug, projectId)}/work-items/${issueId}/work-item-properties/${propertyId}/values/`)
-    );
+    return this.run(this.delete(this.value(slug, projectId, issueId, propertyId)));
+  }
+}
+
+/** Module properties: same calls, module paths. The scope id is the project id (one set per project). */
+export class ModulePropertiesService extends PropertiesService {
+  protected defs(slug: string, projectId: string) {
+    return `${this.base(slug, projectId)}/module-properties/`;
+  }
+
+  protected def(slug: string, projectId: string, propertyId: string) {
+    return `${this.base(slug, projectId)}/module-properties/${propertyId}/`;
+  }
+
+  protected allValues(slug: string, projectId: string, moduleId: string) {
+    return `${this.base(slug, projectId)}/modules/${moduleId}/module-property-values/`;
+  }
+
+  protected value(slug: string, projectId: string, moduleId: string, propertyId: string) {
+    return `${this.base(slug, projectId)}/modules/${moduleId}/module-properties/${propertyId}/values/`;
+  }
+
+  async values(slug: string, projectId: string, moduleId: string): Promise<TPropertyValues> {
+    const out = await this.run<{ values: TPropertyValues }>(this.get(this.allValues(slug, projectId, moduleId)));
+    return out.values;
+  }
+
+  /** {module_id: {property_id: value}} for the module list. */
+  projectValues(slug: string, projectId: string): Promise<Record<string, TPropertyValues>> {
+    return this.run(this.get(`${this.base(slug, projectId)}/module-property-values/`));
   }
 }

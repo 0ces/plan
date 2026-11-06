@@ -5,7 +5,7 @@
  */
 
 import type { LucideIcon } from "lucide-react";
-import { Layers, Users, Zap } from "lucide-react"; // OCES: Layers for work item types
+import { Layers, SlidersHorizontal, Users, Zap } from "lucide-react"; // OCES: icons for fork settings pages
 // plane imports
 import type { ISvgIcons } from "@plane/propel/icons";
 import {
@@ -35,4 +35,5 @@ export const PROJECT_SETTINGS_ICONS: Record<TProjectSettingsTabs, LucideIcon | R
   estimates: EstimatePropertyIcon,
   automations: Zap,
   work_item_types: Layers, // OCES:
+  module_properties: SlidersHorizontal, // OCES:
 };

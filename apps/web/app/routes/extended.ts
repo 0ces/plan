@@ -36,6 +36,10 @@ export const extendedRoutes: RouteConfigEntry[] = [
               ":workspaceSlug/settings/projects/:projectId/work-item-types",
               `${PROJECT_SETTINGS}/(oces)/work-item-types/page.tsx`
             ),
+            route(
+              ":workspaceSlug/settings/projects/:projectId/module-properties",
+              `${PROJECT_SETTINGS}/(oces)/module-properties/page.tsx`
+            ),
           ]),
         ]),
       ]),

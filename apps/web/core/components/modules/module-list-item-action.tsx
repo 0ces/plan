@@ -21,6 +21,7 @@ import { renderFormattedPayloadDate, getDate } from "@plane/utils";
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 import { ModuleQuickActions } from "@/components/modules";
 import { ModuleStatusDropdown } from "@/components/modules/module-status-dropdown";
+import { ModulePropertyChips } from "@oces/components/module-property-chips";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useModule } from "@/hooks/store/use-module";
@@ -130,6 +131,14 @@ export const ModuleListItemAction = observer(function ModuleListItemAction(props
 
   return (
     <>
+      {/* OCES: module custom property values */}
+      {workspaceSlug && projectId && (
+        <ModulePropertyChips
+          workspaceSlug={workspaceSlug.toString()}
+          projectId={projectId.toString()}
+          moduleId={moduleId}
+        />
+      )}
       <DateRangeDropdown
         buttonContainerClassName={`h-6 w-full flex ${isDisabled ? "cursor-not-allowed" : "cursor-pointer"} items-center gap-1.5 text-tertiary border-[0.5px] border-strong rounded-sm text-11`}
         buttonVariant="transparent-with-text"

@@ -9,30 +9,30 @@ import { observer } from "mobx-react";
 import { Button } from "@plane/propel/button";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import { AlertModalCore, CustomMenu } from "@plane/ui";
-import { propertiesStore } from "../store/properties.store";
+import { modulePropertiesStore, propertiesStore as globalPropertiesStore } from "../store/properties.store";
 import type { TProperty } from "../types";
-import { PropertyModal, kindOf } from "./property-modal";
+import { MODULE_KINDS, PropertyModal, kindOf } from "./property-modal";
 import { propertyIcon } from "./property-value-input";
 
-type Props = { workspaceSlug: string; projectId: string; typeId: string };
+/** typeId: the work item type; with `forModules`, leave it out (module properties are per project). */
+type Props = { workspaceSlug: string; projectId: string; typeId?: string; forModules?: boolean };
 
 function Badge({ children }: { children: React.ReactNode }) {
   return <span className="rounded-sm bg-layer-2 px-1.5 py-0.5 text-11 text-secondary">{children}</span>;
 }
 
-/** The custom properties of one work item type, inside the type's row in settings. */
-export const TypePropertiesEditor = observer(function TypePropertiesEditor({
-  workspaceSlug,
-  projectId,
-  typeId,
-}: Props) {
+/** The custom properties of one work item type (inside the type's row in settings), or of the project's modules. */
+export const TypePropertiesEditor = observer(function TypePropertiesEditor(props: Props) {
+  const { workspaceSlug, projectId, forModules = false } = props;
+  const typeId = forModules ? projectId : (props.typeId ?? "");
+  const propertiesStore = forModules ? modulePropertiesStore : globalPropertiesStore;
   const [modal, setModal] = useState<{ open: boolean; property?: TProperty }>({ open: false });
   const [deleting, setDeleting] = useState<TProperty | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     void propertiesStore.fetchForType(workspaceSlug, projectId, typeId);
-  }, [workspaceSlug, projectId, typeId]);
+  }, [workspaceSlug, projectId, typeId, propertiesStore]);
 
   const properties = propertiesStore.getForType(typeId);
 
@@ -64,7 +64,11 @@ export const TypePropertiesEditor = observer(function TypePropertiesEditor({
         </Button>
       </div>
       {properties.length === 0 ? (
-        <p className="text-12 text-tertiary">No properties yet. Add fields like Client, Size or Due week.</p>
+        <p className="text-12 text-tertiary">
+          {forModules
+            ? "No module properties yet. Add fields like Priority, Depends on or Suggested order."
+            : "No properties yet. Add fields like Client, Size or Due week."}
+        </p>
       ) : (
         <ul className="divide-y divide-subtle rounded-md border-[0.5px] border-subtle bg-surface-1">
           {properties.map((p, i) => {
@@ -120,13 +124,15 @@ export const TypePropertiesEditor = observer(function TypePropertiesEditor({
         workspaceSlug={workspaceSlug}
         projectId={projectId}
         typeId={typeId}
+        store={propertiesStore}
+        kinds={forModules ? MODULE_KINDS : undefined}
       />
       <AlertModalCore
         isOpen={!!deleting}
         handleClose={() => setDeleting(null)}
         isSubmitting={busy}
         title={`Delete "${deleting?.display_name}"?`}
-        content="Its values are removed from every work item. To keep them, deactivate the property instead."
+        content={`Its values are removed from every ${forModules ? "module" : "work item"}. To keep them, deactivate the property instead.`}
         primaryButtonText={{ loading: "Deleting", default: "Delete" }}
         handleSubmit={async () => {
           if (!deleting) return;

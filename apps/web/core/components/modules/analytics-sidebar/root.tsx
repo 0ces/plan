@@ -26,6 +26,7 @@ import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { ILinkDetails, IModule, ModuleLink } from "@plane/types";
 // plane ui
 import { Loader, CustomSelect } from "@plane/ui";
+import { ModulePropertyValues } from "@oces/components/module-property-values";
 // components
 // helpers
 import { getDate, renderFormattedPayloadDate } from "@plane/utils";
@@ -359,6 +360,15 @@ export const ModuleAnalyticsSidebar = observer(function ModuleAnalyticsSidebar(p
                 <span className="px-1.5 text-13 text-tertiary">{issueEstimatePointCount}</span>
               </div>
             </div>
+          )}
+          {/* OCES: module custom properties */}
+          {workspaceSlug && projectId && (
+            <ModulePropertyValues
+              workspaceSlug={workspaceSlug.toString()}
+              projectId={projectId.toString()}
+              moduleId={moduleId}
+              disabled={!isEditingAllowed || !!isArchived}
+            />
           )}
         </div>
 
