@@ -268,3 +268,52 @@ class WorkLog(BaseModel):
             models.Index(fields=["project", "logged_at"], name="oces_worklog_project_idx"),
             models.Index(fields=["issue"], name="oces_worklog_issue_idx"),
         ]
+
+
+class BitbucketConnection(BaseModel):
+    """A workspace's Bitbucket Cloud webhook. The secret signs every delivery (X-Hub-Signature)."""
+
+    workspace = models.OneToOneField("db.Workspace", on_delete=models.CASCADE, related_name="oces_bitbucket")
+    secret = models.CharField(max_length=128)
+    is_active = models.BooleanField(default=True)
+    last_event_at = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = "oces_bitbucket_connections"
+
+
+class PullRequest(BaseModel):
+    """A pull request seen through a webhook, linked to the work items its title, branch or description mention."""
+
+    workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="+")
+    provider = models.CharField(max_length=32, default="bitbucket")
+    repository = models.CharField(max_length=255)  # workspace/repo
+    number = models.PositiveIntegerField()
+    title = models.CharField(max_length=512)
+    url = models.URLField(max_length=1024)
+    state = models.CharField(max_length=32)  # OPEN, MERGED, DECLINED, SUPERSEDED
+    author = models.CharField(max_length=255, blank=True, default="")
+    source_branch = models.CharField(max_length=255, blank=True, default="")
+    target_branch = models.CharField(max_length=255, blank=True, default="")
+    pr_updated_at = models.DateTimeField(null=True)
+    issues = models.ManyToManyField("db.Issue", through="WorkItemPullRequest", related_name="oces_pull_requests")
+
+    class Meta:
+        db_table = "oces_pull_requests"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["workspace", "provider", "repository", "number"], name="oces_pull_request_unique"
+            )
+        ]
+
+
+class WorkItemPullRequest(models.Model):
+    """Link between a pull request and a work item it mentions."""
+
+    pull_request = models.ForeignKey(PullRequest, on_delete=models.CASCADE, related_name="links")
+    issue = models.ForeignKey("db.Issue", on_delete=models.CASCADE, related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "oces_work_item_pull_requests"
+        constraints = [models.UniqueConstraint(fields=["pull_request", "issue"], name="oces_wipr_unique")]

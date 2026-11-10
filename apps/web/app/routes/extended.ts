@@ -33,6 +33,9 @@ export const extendedRoutes: RouteConfigEntry[] = [
         ]),
       ]),
       layout(`${WS}/(settings)/layout.tsx`, [
+        layout(`${WS}/(settings)/settings/(workspace)/layout.tsx`, [
+          route(":workspaceSlug/settings/bitbucket", `${WS}/(settings)/settings/(workspace)/(oces)/bitbucket/page.tsx`),
+        ]),
         layout(`${WS}/(settings)/settings/projects/layout.tsx`, [
           layout(`${PROJECT_SETTINGS}/layout.tsx`, [
             route(

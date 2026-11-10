@@ -11,6 +11,7 @@ from plane.oces.urls.pages import routes as page_routes
 from plane.oces.urls.properties import routes
 from plane.oces.urls.worklogs import routes as worklog_routes
 
+from plane.oces.bitbucket import WorkItemPullRequestsAPIEndpoint
 from plane.oces.pql_views import (
     ArchivedWorkItemListAPIEndpoint,
     ProjectWorkItemListAPIEndpoint,
@@ -24,6 +25,11 @@ from plane.oces.views import ProjectFeaturesAPIEndpoint, WorkspaceFeaturesAPIEnd
 urlpatterns = (
     [
         path("oces/version/", VersionAPIEndpoint.as_view(http_method_names=["get"]), name="oces-v1-version"),
+        path(
+            "workspaces/<str:slug>/projects/<uuid:project_id>/work-items/<uuid:work_item_id>/pull-requests/",
+            WorkItemPullRequestsAPIEndpoint.as_view(http_method_names=["get"]),
+            name="oces-v1-work-item-pull-requests",
+        ),
         path(
             "workspaces/<str:slug>/features/",
             WorkspaceFeaturesAPIEndpoint.as_view(http_method_names=["get", "patch"]),

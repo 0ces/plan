@@ -150,3 +150,23 @@ export type TWorkLog = {
 export type TWorkLogInput = { duration: number; description?: string; logged_at?: string };
 
 export type TWorkLogRange = { from: string; to: string; results: TWorkLog[] };
+
+// ---------------------------------------------------------------- Bitbucket
+
+export type TPullRequest = {
+  id: string;
+  provider: string;
+  repository: string;
+  number: number;
+  title: string;
+  url: string;
+  state: "OPEN" | "MERGED" | "DECLINED" | "SUPERSEDED" | string;
+  author: string;
+  source_branch: string;
+  target_branch: string;
+  updated_at: string | null;
+};
+
+export type TBitbucketSettings =
+  | { enabled: false }
+  | { enabled: true; webhook_url: string; secret: string; last_event_at: string | null; pull_requests: number };

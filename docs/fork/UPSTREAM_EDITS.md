@@ -44,3 +44,5 @@ Files we own entirely (not listed): `apps/api/plane/oces/`, `apps/web/oces/`, `a
 | `apps/web/core/components/project/settings/features-list.tsx`                            | Time tracking toggle in the new-project features step                                                        |
 | `packages/types/src/project/projects.ts`                                                 | `is_time_tracking_enabled` on the project type                                                               |
 | `apps/web/core/components/issues/issue-layouts/utils.tsx`                                | state columns in the project's saved board order                                                             |
+| `apps/web/core/components/settings/workspace/sidebar/item-icon.tsx`                      | Bitbucket settings icon                                                                                      |
+| `packages/constants/src/settings/workspace.ts`                                           | Bitbucket workspace settings entry (Developer)                                                               |

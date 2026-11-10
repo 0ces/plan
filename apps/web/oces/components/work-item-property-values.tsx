@@ -12,11 +12,12 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { propertiesStore } from "../store/properties.store";
 import type { TPropertyValue } from "../types";
 import { PropertyValueInput, propertyIcon } from "./property-value-input";
+import { WorkItemPullRequests } from "./work-item-pull-requests";
 import { WorkItemTimeLog } from "./work-item-time-log";
 
 type Props = { workspaceSlug: string; projectId: string; issueId: string; disabled: boolean };
 
-/** Custom property rows (and the time log row) in the work item sidebar and peek panel, after the built-in ones. */
+/** Custom property rows (plus time log and pull requests) in the work item sidebar and peek panel, after the built-in ones. */
 export const WorkItemPropertyValues = observer(function WorkItemPropertyValues(props: Props) {
   const { workspaceSlug, projectId, issueId, disabled } = props;
   const {
@@ -56,6 +57,7 @@ export const WorkItemPropertyValues = observer(function WorkItemPropertyValues(p
         </SidebarPropertyListItem>
       ))}
       <WorkItemTimeLog workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} />
+      <WorkItemPullRequests workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} />
     </>
   );
 });

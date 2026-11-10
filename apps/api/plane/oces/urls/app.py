@@ -10,6 +10,7 @@ from plane.oces.urls.initiatives import routes as initiative_routes
 from plane.oces.urls.properties import routes
 from plane.oces.urls.worklogs import routes as worklog_routes
 
+from plane.oces.bitbucket import BitbucketSettingsEndpoint, BitbucketWebhookView, WorkItemPullRequestsEndpoint
 from plane.oces.board_views import BoardOrderEndpoint
 from plane.oces.live import LiveAccessEndpoint
 from plane.oces.epic_views import EpicListEndpoint, EpicProgressEndpoint
@@ -22,6 +23,17 @@ P = "workspaces/<str:slug>/projects/<uuid:project_id>/oces"
 urlpatterns = (
     [
         path("oces/version/", VersionEndpoint.as_view(http_method_names=["get"]), name="oces-version"),
+        path("oces/bitbucket/<str:slug>/webhook/", BitbucketWebhookView.as_view(), name="oces-bitbucket-webhook"),
+        path(
+            "workspaces/<str:slug>/oces/bitbucket/",
+            BitbucketSettingsEndpoint.as_view(http_method_names=["get", "post", "delete"]),
+            name="oces-bitbucket-settings",
+        ),
+        path(
+            f"{P}/work-items/<uuid:work_item_id>/pull-requests/",
+            WorkItemPullRequestsEndpoint.as_view(http_method_names=["get"]),
+            name="oces-work-item-pull-requests",
+        ),
         path(
             "workspaces/<str:slug>/oces/live-access/",
             LiveAccessEndpoint.as_view(http_method_names=["get"]),

@@ -108,6 +108,10 @@ Time logs on work items, switched per project with upstream's unused `is_time_tr
 
 Project settings → Work structure → Board columns: one saved order of state columns per project (`oces_project_features.board_state_order`), used by the board and list when grouped by state, across state groups. Empty = upstream order; states not in the saved list go at the end. Set with up/down arrows in settings (no dragging columns on the board itself).
 
+### G. Bitbucket Cloud pull requests (added 2026-11-10)
+
+Workspace settings → Bitbucket (admins): turning it on makes a secret; the page shows it with the webhook URL (`{WEB_URL}/api/oces/bitbucket/{slug}/webhook/`) to paste into a Bitbucket workspace or repository webhook with the pull request events. Deliveries are checked with `X-Hub-Signature` (HMAC-SHA256 of the raw body, constant-time compare); unknown workspace → 404, bad signature → 401. Each pull request (`oces_pull_requests`) is linked (`oces_work_item_pull_requests`) to every work item whose id appears in its title, source branch or description, relinked on each event. Shown as a "Pull requests" row in the work item side panel and peek; `GET .../work-items/{id}/pull-requests/` in the public API. Not built: backfill of older pull requests (needs a Bitbucket token), commits/branches, moving the state on merge, Bitbucket Data Center.
+
 ### 4. Releases — 7 days
 
 - **Models**: `Release` (workspace, name, `version`, `status` unreleased/released/cancelled, start_date, release_date, description_html = release notes, lead). `ReleaseWorkItem`. `ReleaseLabel` and its link table. `ReleaseTag`. `ReleaseComment`. `ReleaseLink`.
