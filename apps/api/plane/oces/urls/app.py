@@ -10,6 +10,7 @@ from plane.oces.urls.initiatives import routes as initiative_routes
 from plane.oces.urls.properties import routes
 from plane.oces.urls.worklogs import routes as worklog_routes
 
+from plane.oces.board_views import BoardOrderEndpoint
 from plane.oces.live import LiveAccessEndpoint
 from plane.oces.epic_views import EpicListEndpoint, EpicProgressEndpoint
 from plane.oces.type_views import WorkItemTypeDetailEndpoint, WorkItemTypeListCreateEndpoint
@@ -47,6 +48,11 @@ urlpatterns = (
             name="oces-work-item-type",
         ),
         path(f"{P}/epics/", EpicListEndpoint.as_view(http_method_names=["get"]), name="oces-epics"),
+        path(
+            f"{P}/board-order/",
+            BoardOrderEndpoint.as_view(http_method_names=["get", "put"]),
+            name="oces-board-order",
+        ),
         path(
             f"{P}/epics/<uuid:epic_id>/progress/",
             EpicProgressEndpoint.as_view(http_method_names=["get"]),

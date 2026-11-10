@@ -116,6 +116,14 @@ export const PROJECT_SETTINGS: Record<TProjectSettingsTabs, TProjectSettingsItem
     access: [EUserProjectRoles.ADMIN],
     highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/features/time-tracking/`,
   },
+  // OCES: saved order of the board's state columns
+  board_columns: {
+    key: "board_columns",
+    i18n_label: "Board columns", // no translation key: t() shows it as is
+    href: `/board-columns`,
+    access: [EUserProjectRoles.ADMIN],
+    highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/board-columns/`,
+  },
   module_properties: {
     key: "module_properties",
     i18n_label: "Module properties", // no translation key: t() shows it as is
@@ -148,6 +156,7 @@ export const GROUPED_PROJECT_SETTINGS: Record<PROJECT_SETTINGS_CATEGORY, TProjec
     PROJECT_SETTINGS["work_item_types"], // OCES:
     PROJECT_SETTINGS["module_properties"], // OCES:
     PROJECT_SETTINGS["states"],
+    PROJECT_SETTINGS["board_columns"], // OCES:
     PROJECT_SETTINGS["labels"],
     PROJECT_SETTINGS["estimates"],
   ],

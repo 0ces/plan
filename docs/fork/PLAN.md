@@ -104,6 +104,10 @@ Custom fields on modules for teams that use module = epic, work items = stories,
 
 Time logs on work items, switched per project with upstream's unused `is_time_tracking_enabled` column (Project settings → Features → Time tracking). Entries live in `oces_work_logs`: minutes, day worked, note, who logged it. Members and admins log; guests neither see nor log; you edit your own entries, admins edit anyone's. Public API at the official paths (`work-items/{id}/worklogs/`, `worklogs/summary/`), so the stock `work_log` tool in plane-mcp-server works unchanged; `worklogs/?from=&to=` feeds the Timesheet page (hours per person per day for a week, expandable per work item). UI: "Time logged" row in the side panel and peek, chip on list rows. Not built: activity feed rows, CSV export, logged vs. estimate. Release notes: releases/oces-v1.4.3-7.md.
 
+### B. Board column order (added 2026-11-10)
+
+Project settings → Work structure → Board columns: one saved order of state columns per project (`oces_project_features.board_state_order`), used by the board and list when grouped by state, across state groups. Empty = upstream order; states not in the saved list go at the end. Set with up/down arrows in settings (no dragging columns on the board itself).
+
 ### 4. Releases — 7 days
 
 - **Models**: `Release` (workspace, name, `version`, `status` unreleased/released/cancelled, start_date, release_date, description_html = release notes, lead). `ReleaseWorkItem`. `ReleaseLabel` and its link table. `ReleaseTag`. `ReleaseComment`. `ReleaseLink`.

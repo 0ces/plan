@@ -5,7 +5,7 @@
  */
 
 import type { LucideIcon } from "lucide-react";
-import { Layers, SlidersHorizontal, Timer, Users, Zap } from "lucide-react"; // OCES: icons for fork settings pages
+import { Columns3, Layers, SlidersHorizontal, Timer, Users, Zap } from "lucide-react"; // OCES: icons for fork settings pages
 // plane imports
 import type { ISvgIcons } from "@plane/propel/icons";
 import {
@@ -37,4 +37,5 @@ export const PROJECT_SETTINGS_ICONS: Record<TProjectSettingsTabs, LucideIcon | R
   work_item_types: Layers, // OCES:
   module_properties: SlidersHorizontal, // OCES:
   features_time_tracking: Timer, // OCES:
+  board_columns: Columns3, // OCES:
 };

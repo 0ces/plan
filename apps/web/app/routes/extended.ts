@@ -44,6 +44,10 @@ export const extendedRoutes: RouteConfigEntry[] = [
               `${PROJECT_SETTINGS}/(oces)/module-properties/page.tsx`
             ),
             route(
+              ":workspaceSlug/settings/projects/:projectId/board-columns",
+              `${PROJECT_SETTINGS}/(oces)/board-columns/page.tsx`
+            ),
+            route(
               ":workspaceSlug/settings/projects/:projectId/features/time-tracking",
               `${PROJECT_SETTINGS}/(oces)/time-tracking/page.tsx`
             ),

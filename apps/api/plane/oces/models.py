@@ -27,6 +27,8 @@ class ProjectFeature(BaseModel):
     project = models.OneToOneField("db.Project", on_delete=models.CASCADE, related_name="oces_features")
     epics = models.BooleanField(default=False)
     workflows = models.BooleanField(default=False)
+    # state ids in the order the board shows them when grouped by state; empty = upstream order
+    board_state_order = models.JSONField(default=list)
 
     class Meta:
         db_table = "oces_project_features"

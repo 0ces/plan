@@ -51,6 +51,8 @@ import { Avatar } from "@plane/ui";
 import { renderFormattedDate, getFileURL } from "@plane/utils";
 // store
 import { store } from "@/lib/store-context";
+// OCES: saved board column order (docs/fork/UPSTREAM_EDITS.md)
+import { orderStateColumns } from "@oces/store/board-order.store";
 import { ISSUE_FILTER_DEFAULT_DATA } from "@/store/issue/helpers/base-issues.store";
 import { DEFAULT_DISPLAY_PROPERTIES } from "@/store/issue/issue-details/sub_issues_filter.store";
 // constants
@@ -242,8 +244,10 @@ const getStateColumns = ({ projectId }: TGetColumns): IGroupByColumn[] | undefin
   const { getProjectStates, projectStates } = store.state;
   const _states = projectId ? getProjectStates(projectId) : projectStates;
   if (!_states) return;
+  // OCES: columns in the project's saved order (Project settings → Board columns)
+  const ordered = orderStateColumns(store.router.workspaceSlug, projectId ?? store.router.projectId, _states);
   // map project states to group by columns
-  return _states.map((state) => ({
+  return ordered.map((state) => ({
     id: state.id,
     name: state.name,
     icon: (

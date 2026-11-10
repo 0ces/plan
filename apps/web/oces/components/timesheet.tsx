@@ -165,7 +165,7 @@ export const Timesheet = observer(function Timesheet({ workspaceSlug, projectId 
       {error && <p className="text-body-sm-regular text-danger-primary">{error}</p>}
 
       <div className="overflow-x-auto rounded-md border border-subtle">
-        <table className="w-full min-w-[720px] border-collapse whitespace-nowrap text-body-xs-regular">
+        <table className="w-full min-w-[720px] border-collapse text-body-xs-regular whitespace-nowrap">
           <thead>
             <tr className="border-b border-subtle bg-layer-1 text-tertiary">
               <th className="px-3 py-2 text-left font-medium">Person</th>
