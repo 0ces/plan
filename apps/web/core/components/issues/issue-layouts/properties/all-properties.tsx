@@ -45,6 +45,8 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 // local components
 import { IssuePropertyLabels } from "./labels";
 import { WithDisplayPropertiesHOC } from "./with-display-properties-HOC";
+// OCES: time logged chip (docs/fork/UPSTREAM_EDITS.md)
+import { WorkItemTimeChip } from "@oces/components/work-item-time-log";
 
 export interface IIssueProperties {
   issue: TIssue;
@@ -499,6 +501,11 @@ export const IssueProperties = observer(function IssueProperties(props: IIssuePr
           maxRender={3}
         />
       </WithDisplayPropertiesHOC>
+
+      {/* OCES: time logged */}
+      {workspaceSlug && issue.project_id && (
+        <WorkItemTimeChip workspaceSlug={workspaceSlug.toString()} projectId={issue.project_id} issueId={issue.id} />
+      )}
     </div>
   );
 });

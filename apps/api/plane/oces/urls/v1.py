@@ -9,6 +9,7 @@ from django.urls import path
 from plane.oces.urls.initiatives import routes as initiative_routes
 from plane.oces.urls.pages import routes as page_routes
 from plane.oces.urls.properties import routes
+from plane.oces.urls.worklogs import routes as worklog_routes
 
 from plane.oces.pql_views import (
     ArchivedWorkItemListAPIEndpoint,
@@ -67,5 +68,6 @@ urlpatterns = (
     ]
     + routes(True, "workspaces/<str:slug>", "workspaces/<str:slug>/projects/<uuid:project_id>")
     + initiative_routes(True, "workspaces/<str:slug>")
+    + worklog_routes(True, "workspaces/<str:slug>/projects/<uuid:project_id>")
     + page_routes("workspaces/<str:slug>", "workspaces/<str:slug>/projects/<uuid:project_id>")
 )

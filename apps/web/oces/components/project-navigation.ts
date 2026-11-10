@@ -7,15 +7,18 @@
 import { useCallback } from "react";
 import { EUserPermissions } from "@plane/constants";
 import { EpicIcon } from "@plane/propel/icons";
+import { Timer } from "lucide-react";
+import { useProject } from "@/hooks/store/use-project";
 import type { TNavigationItem } from "@/components/workspace/sidebar/project-navigation";
 import { useWorkItemTypes } from "../store/use-work-item-types";
 
 type TItems = (workspaceSlug: string, projectId: string) => TNavigationItem[];
 
-/** Adds an "Epics" entry to a project's sidebar when the project has an epic type. */
+/** Adds "Epics" (when the project has an epic type) and "Timesheet" (when time tracking is on) to a project's sidebar. */
 export function useOcesProjectNavigation(workspaceSlug: string, projectId: string, upstream?: TItems): TItems {
   const store = useWorkItemTypes(workspaceSlug, projectId);
   const hasEpics = store.isEnabled(projectId) && !!store.getEpicType(projectId);
+  const hasTime = !!useProject().getProjectById(projectId)?.is_time_tracking_enabled;
   return useCallback(
     (slug: string, pid: string) => [
       ...(upstream ? upstream(slug, pid) : []),
@@ -29,7 +32,17 @@ export function useOcesProjectNavigation(workspaceSlug: string, projectId: strin
         shouldRender: hasEpics,
         sortOrder: 1.5,
       },
+      {
+        i18n_key: "Timesheet", // no translation key: t() shows it as is
+        key: "timesheet",
+        name: "Timesheet",
+        href: `/${slug}/projects/${pid}/timesheet`,
+        icon: Timer,
+        access: [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
+        shouldRender: hasTime,
+        sortOrder: 99,
+      },
     ],
-    [upstream, hasEpics]
+    [upstream, hasEpics, hasTime]
   );
 }

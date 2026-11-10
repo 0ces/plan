@@ -11,6 +11,8 @@ import { setPromiseToast } from "@plane/propel/toast";
 import { Tooltip } from "@plane/propel/tooltip";
 import type { IProject } from "@plane/types";
 import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon } from "@plane/propel/icons";
+// OCES: time tracking toggle (docs/fork/UPSTREAM_EDITS.md)
+import { Timer } from "lucide-react";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 import { SettingsHeading } from "@/components/settings/heading";
@@ -70,6 +72,16 @@ const PROJECT_FEATURES_LIST = {
     title: "Intake",
     description: "Consider and discuss work items before you add them to your project.",
     icon: <IntakeIcon className="h-5 w-5 flex-shrink-0 text-tertiary" />,
+    isPro: false,
+    isEnabled: true,
+  },
+  // OCES: time logs on work items + project timesheet
+  time_tracking: {
+    key: "time_tracking",
+    property: "is_time_tracking_enabled",
+    title: "Time tracking",
+    description: "Log time spent on work items and projects.",
+    icon: <Timer className="h-5 w-5 flex-shrink-0 text-tertiary" />,
     isPro: false,
     isEnabled: true,
   },

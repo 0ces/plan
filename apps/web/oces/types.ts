@@ -132,3 +132,21 @@ export type TLinkedWorkItem = {
   state: string;
   priority: string;
 };
+
+// ---------------------------------------------------------------- time logs
+
+export type TWorkLog = {
+  id: string;
+  work_item_id: string;
+  project_id: string;
+  duration: number; // minutes
+  description: string;
+  logged_at: string; // YYYY-MM-DD
+  logged_by: string;
+  created_at: string;
+  work_item?: { id: string; sequence_id: number; name: string };
+};
+
+export type TWorkLogInput = { duration: number; description?: string; logged_at?: string };
+
+export type TWorkLogRange = { from: string; to: string; results: TWorkLog[] };

@@ -246,3 +246,23 @@ class VersionStatus(BaseModel):
 
     class Meta:
         db_table = "oces_version_status"
+
+
+class WorkLog(BaseModel):
+    """Time spent on a work item. duration is in minutes, logged_at is the day the work was done."""
+
+    workspace = models.ForeignKey("db.Workspace", on_delete=models.CASCADE, related_name="+")
+    project = models.ForeignKey("db.Project", on_delete=models.CASCADE, related_name="oces_work_logs")
+    issue = models.ForeignKey("db.Issue", on_delete=models.CASCADE, related_name="oces_work_logs")
+    logged_by = models.ForeignKey("db.User", on_delete=models.CASCADE, related_name="+")
+    duration = models.PositiveIntegerField()
+    description = models.TextField(blank=True, default="")
+    logged_at = models.DateField()
+
+    class Meta:
+        db_table = "oces_work_logs"
+        ordering = ("-logged_at", "-created_at")
+        indexes = [
+            models.Index(fields=["project", "logged_at"], name="oces_worklog_project_idx"),
+            models.Index(fields=["issue"], name="oces_worklog_issue_idx"),
+        ]

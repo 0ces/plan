@@ -32,7 +32,8 @@ export type TProjectSettingsTabs =
   | "estimates"
   | "automations"
   | "work_item_types" // OCES: fork settings pages
-  | "module_properties";
+  | "module_properties"
+  | "features_time_tracking";
 export type TProjectSettingsItem = {
   key: TProjectSettingsTabs;
   i18n_label: string;

@@ -27,6 +27,9 @@ export const extendedRoutes: RouteConfigEntry[] = [
           layout(`${PROJECT}/(oces)/epics/layout.tsx`, [
             route(":workspaceSlug/projects/:projectId/epics", `${PROJECT}/(oces)/epics/page.tsx`),
           ]),
+          layout(`${PROJECT}/(oces)/timesheet/layout.tsx`, [
+            route(":workspaceSlug/projects/:projectId/timesheet", `${PROJECT}/(oces)/timesheet/page.tsx`),
+          ]),
         ]),
       ]),
       layout(`${WS}/(settings)/layout.tsx`, [
@@ -39,6 +42,10 @@ export const extendedRoutes: RouteConfigEntry[] = [
             route(
               ":workspaceSlug/settings/projects/:projectId/module-properties",
               `${PROJECT_SETTINGS}/(oces)/module-properties/page.tsx`
+            ),
+            route(
+              ":workspaceSlug/settings/projects/:projectId/features/time-tracking",
+              `${PROJECT_SETTINGS}/(oces)/time-tracking/page.tsx`
             ),
           ]),
         ]),

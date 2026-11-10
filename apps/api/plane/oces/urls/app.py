@@ -8,6 +8,7 @@ from django.urls import path
 
 from plane.oces.urls.initiatives import routes as initiative_routes
 from plane.oces.urls.properties import routes
+from plane.oces.urls.worklogs import routes as worklog_routes
 
 from plane.oces.live import LiveAccessEndpoint
 from plane.oces.epic_views import EpicListEndpoint, EpicProgressEndpoint
@@ -54,4 +55,5 @@ urlpatterns = (
     ]
     + routes(False, "workspaces/<str:slug>/oces", P)
     + initiative_routes(False, "workspaces/<str:slug>/oces")
+    + worklog_routes(False, P)
 )

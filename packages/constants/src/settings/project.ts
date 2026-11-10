@@ -108,6 +108,14 @@ export const PROJECT_SETTINGS: Record<TProjectSettingsTabs, TProjectSettingsItem
     access: [EUserProjectRoles.ADMIN],
     highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/work-item-types/`,
   },
+  // OCES: time logs switch (upstream column is_time_tracking_enabled)
+  features_time_tracking: {
+    key: "features_time_tracking",
+    i18n_label: "project_settings.features.time_tracking.short_title",
+    href: `/features/time-tracking`,
+    access: [EUserProjectRoles.ADMIN],
+    highlight: (pathname: string, baseUrl: string) => pathname === `${baseUrl}/features/time-tracking/`,
+  },
   module_properties: {
     key: "module_properties",
     i18n_label: "Module properties", // no translation key: t() shows it as is
@@ -134,6 +142,7 @@ export const GROUPED_PROJECT_SETTINGS: Record<PROJECT_SETTINGS_CATEGORY, TProjec
     PROJECT_SETTINGS["features_views"],
     PROJECT_SETTINGS["features_pages"],
     PROJECT_SETTINGS["features_intake"],
+    PROJECT_SETTINGS["features_time_tracking"], // OCES:
   ],
   [PROJECT_SETTINGS_CATEGORY.WORK_STRUCTURE]: [
     PROJECT_SETTINGS["work_item_types"], // OCES:

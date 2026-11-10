@@ -187,6 +187,7 @@ class ProjectViewSet(BaseViewSet):
             "module_view",
             "page_view",
             "inbox_view",
+            "is_time_tracking_enabled",  # OCES: time logs switch for the web app
             "guest_view_all_features",
             "project_lead",
             "network",

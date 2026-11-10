@@ -100,6 +100,10 @@ Goal: the whole web app updates by itself (lists, boards, work item detail, comm
 
 Custom fields on modules for teams that use module = epic, work items = stories, sub-items = tasks (Multiplied's TWT). Definitions reuse the work item property table with `entity=MODULE` (the default manager hides them from every work item path); values live in `oces_module_property_values`. Same kinds as work item properties minus rich text, plus a MODULE relation for "depends on". Work item counts, points and % progress are computed from the module's top-level work items, never typed. Settings page, side panel rows, list chips. The MCP fork 0ces/plane-mcp-server adds a `module_property` tool. Release notes: releases/oces-v1.4.3-6.md.
 
+### T. Time tracking (added 2026-11-10)
+
+Time logs on work items, switched per project with upstream's unused `is_time_tracking_enabled` column (Project settings → Features → Time tracking). Entries live in `oces_work_logs`: minutes, day worked, note, who logged it. Members and admins log; guests neither see nor log; you edit your own entries, admins edit anyone's. Public API at the official paths (`work-items/{id}/worklogs/`, `worklogs/summary/`), so the stock `work_log` tool in plane-mcp-server works unchanged; `worklogs/?from=&to=` feeds the Timesheet page (hours per person per day for a week, expandable per work item). UI: "Time logged" row in the side panel and peek, chip on list rows. Not built: activity feed rows, CSV export, logged vs. estimate. Release notes: releases/oces-v1.4.3-7.md.
+
 ### 4. Releases — 7 days
 
 - **Models**: `Release` (workspace, name, `version`, `status` unreleased/released/cancelled, start_date, release_date, description_html = release notes, lead). `ReleaseWorkItem`. `ReleaseLabel` and its link table. `ReleaseTag`. `ReleaseComment`. `ReleaseLink`.

@@ -62,7 +62,8 @@ export class WorkItemTypesStore {
 
   getDefaultType = (projectId: string) => this.getProjectTypes(projectId).find((t) => t.is_default);
 
-  getEpicType = (projectId: string) => this.getProjectTypes(projectId).find((t) => t.is_epic);
+  // an epic type that is turned off hides the Epics page and nav entry
+  getEpicType = (projectId: string) => this.getProjectTypes(projectId).find((t) => t.is_epic && t.is_active);
 
   setEnabled = async (workspaceSlug: string, projectId: string, enabled: boolean) => {
     await service.setFeatures(workspaceSlug, projectId, { work_item_types: enabled });
