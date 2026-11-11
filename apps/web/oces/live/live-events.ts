@@ -10,7 +10,7 @@
 
 import { toJS } from "mobx";
 import { LIVE_BASE_PATH, LIVE_BASE_URL } from "@plane/constants";
-import type { TIssue } from "@plane/types";
+import type { IssuePaginationOptions, TIssue, TIssuesResponse } from "@plane/types";
 import { rootStore } from "@/lib/store-context";
 import { EIssueGroupedAction } from "@/store/issue/helpers/base-issues.store";
 import { IssueService } from "@/services/issue";
@@ -48,6 +48,46 @@ type ListTarget = {
   };
 };
 
+type ListStore = {
+  paginationOptions?: IssuePaginationOptions;
+  issueFilterStore?: { getFilterParams: (o: IssuePaginationOptions, id: string, ...rest: undefined[]) => object };
+  issueService: { getIssues: (slug: string, projectId: string, params: object) => Promise<TIssuesResponse> };
+  issueArchiveService: {
+    getArchivedIssues: (slug: string, projectId: string, params: object) => Promise<TIssuesResponse>;
+  };
+  onfetchIssues: (
+    res: TIssuesResponse,
+    options: IssuePaginationOptions,
+    slug: string,
+    projectId?: string,
+    id?: string,
+    shouldClearPaginationOptions?: boolean
+  ) => void;
+};
+
+/**
+ * Reload the list's first page(s) without emptying it first. The stores' own fetchIssues clears
+ * the list before the request, which blanks the whole board/list until the answer arrives;
+ * onfetchIssues swaps old for new in one MobX action instead.
+ */
+const reloadQuietly = async (
+  store: unknown,
+  slug: string,
+  projectId: string,
+  filterId: string,
+  listId?: string,
+  archived = false
+) => {
+  const s = store as ListStore;
+  const options = s.paginationOptions;
+  if (!options) return;
+  const params = s.issueFilterStore?.getFilterParams(options, filterId, undefined, undefined, undefined) ?? {};
+  const res = archived
+    ? await s.issueArchiveService.getArchivedIssues(slug, projectId, params)
+    : await s.issueService.getIssues(slug, projectId, params);
+  s.onfetchIssues(res, options, slug, projectId, listId, false);
+};
+
 /** The issue list on screen, if any. */
 export const currentList = (slug: string): ListTarget | undefined => {
   const { router, issue } = rootStore;
@@ -55,31 +95,31 @@ export const currentList = (slug: string): ListTarget | undefined => {
   const path = window.location.pathname;
   if (!projectId) return undefined;
   if (path.includes("/archives/issues")) {
-    return { refetch: () => issue.archivedIssues.fetchIssuesWithExistingPagination(slug, projectId, "mutation") };
+    return { refetch: () => reloadQuietly(issue.archivedIssues, slug, projectId, projectId, undefined, true) };
   }
   if (router.cycleId) {
     const cycleId = router.cycleId;
     return {
-      refetch: () => issue.cycleIssues.fetchIssuesWithExistingPagination(slug, projectId, "mutation", cycleId),
+      refetch: () => reloadQuietly(issue.cycleIssues, slug, projectId, cycleId, cycleId),
       patch: { store: issue.cycleIssues as never, belongs: (i) => i.cycle_id === cycleId },
     };
   }
   if (router.moduleId) {
     const moduleId = router.moduleId;
     return {
-      refetch: () => issue.moduleIssues.fetchIssuesWithExistingPagination(slug, projectId, "mutation", moduleId),
+      refetch: () => reloadQuietly(issue.moduleIssues, slug, projectId, moduleId, moduleId),
       patch: { store: issue.moduleIssues as never, belongs: (i) => !!i.module_ids?.includes(moduleId) },
     };
   }
   if (router.viewId) {
     const viewId = router.viewId;
     return {
-      refetch: () => issue.projectViewIssues.fetchIssuesWithExistingPagination(slug, projectId, viewId, "mutation"),
+      refetch: () => reloadQuietly(issue.projectViewIssues, slug, projectId, viewId, viewId),
     };
   }
   if (/\/projects\/[^/]+\/issues\/?$/.test(path)) {
     return {
-      refetch: () => issue.projectIssues.fetchIssuesWithExistingPagination(slug, projectId, "mutation"),
+      refetch: () => reloadQuietly(issue.projectIssues, slug, projectId, projectId),
       patch: { store: issue.projectIssues as never, belongs: (i) => i.project_id === projectId && !i.is_draft },
     };
   }
