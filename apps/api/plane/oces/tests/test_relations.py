@@ -135,3 +135,17 @@ class TestRelationListCreate:
     def test_definitions_empty_page(self, api_key_client, project):
         res = api_key_client.get(f"/api/v1/workspaces/{project.workspace.slug}/work-item-relation-definitions/")
         assert res.status_code == 200 and res.json()["results"] == [] and res.json()["next_page_results"] is False
+
+
+@pytest.mark.contract
+class TestRelationArchived:
+    def test_archived_item_listed_and_deletable(self, api_key_client, project, items):
+        from django.utils import timezone
+
+        a, b, _ = items
+        relate(project, a, b, "blocked_by")
+        Issue.objects.filter(pk=b.pk).update(archived_at=timezone.now().date())
+        listed = api_key_client.get(wi(project, a, "dependencies/")).json()
+        assert [r["id"] for r in listed["blocked_by"]] == [str(b.id)]
+        assert api_key_client.delete(wi(project, b, f"dependencies/{a.id}/")).status_code == 204
+        assert not IssueRelation.objects.filter(issue=a).exists()

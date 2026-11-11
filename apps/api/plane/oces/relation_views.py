@@ -23,6 +23,7 @@ import uuid
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
+from django.http import QueryDict
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import BasePermission
@@ -45,7 +46,7 @@ UUID_FIELDS = ("id", "project_id", "state_id", "type_id")
 
 def remove_relations(request, slug, project_id, issue_id, related_id, stored_types=None):
     """Delete the relation(s) between two work items, either direction. 404 when there is none."""
-    if not Issue.issue_objects.filter(pk=issue_id, project_id=project_id, workspace__slug=slug).exists():
+    if not Issue.objects.filter(pk=issue_id, project_id=project_id, workspace__slug=slug).exists():
         return Response({"error": "Work item not found."}, status=status.HTTP_404_NOT_FOUND)
     rows = IssueRelation.objects.filter(workspace__slug=slug).filter(
         Q(issue_id=issue_id, related_issue_id=related_id) | Q(issue_id=related_id, related_issue_id=issue_id)
@@ -88,7 +89,7 @@ class _Relations(IssueRelationListCreateAPIEndpoint):
         ids = {r["issue_id"] for rows in groups.values() for r in rows}
         found = {
             str(i["id"]): i
-            for i in Issue.issue_objects.filter(pk__in=ids, workspace__slug=slug).values(
+            for i in Issue.objects.filter(pk__in=ids, workspace__slug=slug).values(
                 "id", "name", "sequence_id", "project_id", "state_id", "priority", "type_id", "sort_order"
             )
         }
@@ -116,10 +117,10 @@ class WorkItemDependenciesAPIEndpoint(_Relations):
             return Response(
                 {"relation_type": f"Use one of: {', '.join(DEPENDENCY_KEYS)}."}, status=status.HTTP_400_BAD_REQUEST
             )
-        request._full_data = {
-            "relation_type": request.data["relation_type"],
-            "issues": request.data.get("work_item_ids") or request.data.get("issues") or [],
-        }
+        if isinstance(request.data, QueryDict):  # form bodies are immutable; the SDK sends JSON
+            return Response({"error": "Send a JSON body."}, status=status.HTTP_400_BAD_REQUEST)
+        if "work_item_ids" in request.data:
+            request.data["issues"] = request.data.pop("work_item_ids")
         return super().post(request, slug, project_id, issue_id)
 
 
@@ -134,7 +135,7 @@ class WorkItemCustomRelationsAPIEndpoint(_Relations):
 
 class WorkItemCustomRelationDetailAPIEndpoint(IssueRelationListCreateAPIEndpoint):
     def delete(self, request, slug, project_id, issue_id, related_id):
-        # The MCP's delete defaults to this route, so it removes any relation type.
+        # The MCP's delete defaults to this route, so it removes every relation between the two, any type.
         return remove_relations(request, slug, project_id, issue_id, related_id)
 
 
