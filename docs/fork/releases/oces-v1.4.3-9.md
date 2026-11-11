@@ -7,6 +7,7 @@ Plane CE v1.4.3 + oces fork, release 9.
   - `DELETE .../work-items/{id}/dependencies/{related_id}/`: MCP with `is_dependency=true`. Removes only blocked_by/blocking, start_before/after and finish_before/after.
   - `POST .../work-items/{id}/relations/remove/` with body `{"related_issue": "<id>"}`: plane-sdk `work_items.relations.delete` (works with or without the trailing slash).
   - Works from either side of the relation, writes the same activity entries as the web app's "remove relation", and returns 404 when there is no relation.
+  - One delete removes **every** relation between the two items that the route covers (all types on `work-item-relations/` and `relations/remove`, all directional types on `dependencies/`), not only one type. Archived work items can be listed and unlinked too.
 - **`workitem_relation list` / `create` / `list_definitions` through the MCP**, which also failed on missing routes:
   - `GET|POST .../work-items/{id}/dependencies/`: the six directional types, with SDK body `{relation_type, work_item_ids}`.
   - `GET .../work-items/{id}/work-item-relations/`: relates_to and duplicate.
